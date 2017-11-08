@@ -1,7 +1,0 @@
-numpy
-scipy
-astropy
-pandas
-matplotlib
-pandas
-datetime
