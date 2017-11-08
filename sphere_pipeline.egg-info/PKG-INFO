@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: sphere-pipeline
+Version: 0.1
+Summary: Pipeline to analyze SPHERE images from irdis or zimpol
+Home-page: https://github.com/jmilou/sphere_pipeline
+Author: Julien Milli
+Author-email: jmilli@eso.org
+License: MIT
+Description: UNKNOWN
+Keywords: image processing data analysis
+Platform: UNKNOWN

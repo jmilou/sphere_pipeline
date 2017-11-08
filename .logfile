@@ -1,0 +1,180 @@
+
+Start time     : 2017-06-13T20:15:01
+Program name   : JavaCPL
+Severity level : [ INFO  ] 
+
+20:20:06 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+20:20:06 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+20:20:06 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+20:20:06 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+20:20:06 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 878] Could not extract insbg_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_INS_BG tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 902] Could not extract insbg_fit_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_INS_BG_FIT tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 926] Could not extract skybg_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_SKY_BG tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 950] Could not extract skybg_fit_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_SKY_BG_FIT tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 997] Could not extract distmap_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_DISTORTION_MAP tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1021] Could not extract filter_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_FILTER_TABLE tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1045] Could not extract fcframe frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_STAR_CENTER tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1069] Could not extract fcasciis frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_FCTABLE tag.
+20:20:48 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1098] Could not extract static_badpixel_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_STATIC_BADPIXELMAP tag.
+20:20:48 [ INFO  ] sph_ird_science_dbi_run: Using master dark as background!
+20:20:48 [WARNING] SPH: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_run, 217] Could not extract a star center calibration frame.Since this is an optional frame, this is ok and this is just a warning. If you intended, to use them check that they have the IRD_STAR_CENTER tag.
+20:23:17 [ INFO  ] SPH: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 452] No star center table provided. Am assuming dithering is not used.
+20:23:18 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 1 of 4
+20:23:18 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+20:23:18 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+20:23:18 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+20:23:19 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+20:23:19 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f83882a2040:0x7f83882a2050:0x7f83882a2058): angle=0 (2:2)
+20:23:19 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+20:23:19 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389f00310:0x7f8389f00320:0x7f8389f00328): angle=0 (2:2)
+20:23:32 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 2 of 4
+20:23:32 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+20:23:32 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+20:23:32 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+20:23:32 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+20:23:32 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389d15fa0:0x7f8389d15fb0:0x7f8389d15fb8): angle=0 (2:2)
+20:23:33 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+20:23:33 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389d48780:0x7f8389d48790:0x7f8389d48798): angle=0 (2:2)
+20:24:08 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 3 of 4
+20:24:08 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+20:24:34 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+20:24:34 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+20:24:34 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+20:24:34 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389e11950:0x7f8389e11960:0x7f8389e11968): angle=0 (2:2)
+20:24:35 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+20:24:35 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389c30640:0x7f8389c30650:0x7f8389c30658): angle=0 (2:2)
+20:25:09 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 4 of 4
+20:25:09 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+20:25:27 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+20:25:27 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+20:25:27 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+20:25:27 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389a0bfc0:0x7f8389a0bfd0:0x7f8389a0bfd8): angle=0 (2:2)
+20:25:27 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+20:25:27 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389a6bdf0:0x7f8389a6be00:0x7f8389a6be08): angle=0 (2:2)
+20:43:31 [ ERROR ] SPH: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error
+20:43:31 [ ERROR ] SPH: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error
+20:43:31 [ ERROR ] SPH: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error
+20:43:31 [ ERROR ] SPH: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_
+20:43:31 [ ERROR ] SPH: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 495] File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ir
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 11 error(s):
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [1/11] 'File read/write error: "could not open the named file" from CFITSIO (ver. 3.36) ffdkopn()=104. filename='SPHER.2015-10-30T01:23:51.122_total.fits', type=1048576, mode=4' (5) at cpl_image_save_:cpl_image_io.c:2240
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [2/11] 'File read/write error' (5) at cpl_imagelist_save:cpl_imagelist_io.c:691
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [3/11] 'File read/write error: "could not open the named file" from CFITSIO (ver. 3.36) ffdkopn()=104. filename='SPHER.2015-10-30T01:23:51.122_total.fits', type=1048576, mode=4' (5) at cpl_image_save_:cpl_image_io.c:2240
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [4/11] 'File read/write error' (5) at cpl_imagelist_save:cpl_imagelist_io.c:691
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [5/11] 'File read/write error: "could not open the named file" from CFITSIO (ver. 3.36) ffdkopn()=104. filename='SPHER.2015-10-30T01:23:51.122_total.fits', type=1048576, mode=4' (5) at cpl_image_save_:cpl_image_io.c:2240
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [6/11] 'File read/write error' (5) at cpl_imagelist_save:cpl_imagelist_io.c:691
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [7/11] 'File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error' (5) at sph_cube_finalise_file:sph_cube.c:405
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [8/11] 'File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error' (5) at sph_ird_common_science_process_cubes:sph_ird_common_science.c:539
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [9/11] 'File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_' (5) at sph_ird_common_science_process_cubes:sph_ird_common_science.c:550
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [10/11] 'File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ir' (5) at sph_ird_science_dbi_process_cubes:sph_ird_science_dbi_run.c:482
+20:43:31 [ ERROR ] cpl_errorstate_dump_one_level:     [11/11] 'File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 495] File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_' (5) at sph_ird_science_dbi_process_cubes:sph_ird_science_dbi_run.c:495
+21:06:42 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+21:06:42 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+21:06:42 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+21:06:42 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+21:06:42 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+21:06:51 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+21:06:51 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+21:06:51 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+21:06:51 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+21:06:51 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+21:06:53 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+21:06:53 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+21:06:53 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+21:06:53 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+21:06:53 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+21:06:54 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+21:06:54 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+21:06:54 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+21:06:54 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+21:06:54 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+21:07:08 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+21:07:08 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+21:07:08 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+21:07:08 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+21:07:08 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+21:07:09 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+21:07:09 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+21:07:09 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+21:07:09 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+21:07:09 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+21:07:10 [ ERROR ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.
+21:07:10 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 3 error(s):
+21:07:10 [ ERROR ] cpl_errorstate_dump_one_level:     [1/3] 'Data not found: Frameset of 3 frame(s) has no frame with tag: IRD_SCIENCE_DBI_RAW' (10) at sph_utils_extract_frames:sph_utils.c:458
+21:07:10 [ ERROR ] cpl_errorstate_dump_one_level:     [2/3] 'A user-defined error: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 797] Could not extract rawframes frames.to use them check that they have the IRD_SCIENCE_DBI_RAW tag.' (1827) at sph_ird_science_dbi_check_frames:sph_ird_science_dbi.c:797
+21:07:10 [ ERROR ] cpl_errorstate_dump_one_level:     [3/3] 'A user-defined error' (1827) at sph_ird_science_dbi_exec_plugin:sph_ird_science_dbi.c:469
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 878] Could not extract insbg_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_INS_BG tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 902] Could not extract insbg_fit_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_INS_BG_FIT tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 926] Could not extract skybg_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_SKY_BG tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 950] Could not extract skybg_fit_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_SKY_BG_FIT tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 997] Could not extract distmap_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_DISTORTION_MAP tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1021] Could not extract filter_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_FILTER_TABLE tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1045] Could not extract fcframe frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_STAR_CENTER tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1069] Could not extract fcasciis frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_FCTABLE tag.
+21:07:16 [ INFO  ] SPH: [SPH: sph_ird_science_dbi.c, sph_ird_science_dbi_check_frames, 1098] Could not extract static_badpixel_frame frames.Since this is an optional frame, this is ok and this message is just informational. If you intended, to use them check that they have the IRD_STATIC_BADPIXELMAP tag.
+21:07:16 [ INFO  ] sph_ird_science_dbi_run: Using master dark as background!
+21:07:16 [WARNING] SPH: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_run, 217] Could not extract a star center calibration frame.Since this is an optional frame, this is ok and this is just a warning. If you intended, to use them check that they have the IRD_STAR_CENTER tag.
+21:09:50 [ INFO  ] SPH: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 452] No star center table provided. Am assuming dithering is not used.
+21:09:51 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 1 of 4
+21:09:51 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+21:10:17 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+21:10:17 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+21:10:18 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+21:10:18 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389ab28b0:0x7f8389ab28c0:0x7f8389ab28c8): angle=0 (2:2)
+21:10:18 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+21:10:18 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389d2e9b0:0x7f8389d2e9c0:0x7f8389d2e9c8): angle=0 (2:2)
+21:11:00 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 2 of 4
+21:11:00 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+21:11:28 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+21:11:28 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+21:11:28 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+21:11:28 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389f1ea00:0x7f8389f1ea10:0x7f8389f1ea18): angle=0 (2:2)
+21:11:28 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+21:11:28 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389d2e9b0:0x7f8389d2e9c0:0x7f8389d2e9c8): angle=0 (2:2)
+21:12:13 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 3 of 4
+21:12:13 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+21:12:32 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+21:12:32 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+21:12:32 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+21:12:32 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389e10b20:0x7f8389e10b30:0x7f8389e10b38): angle=0 (2:2)
+21:12:32 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+21:12:32 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389e2cb00:0x7f8389e2cb10:0x7f8389e2cb18): angle=0 (2:2)
+21:13:15 [ INFO  ] sph_ird_common_science_process_single_cube: Processing plane 4 of 4
+21:13:15 [ INFO  ] sph_ird_common_science_process_single_cube: Trying to load file /Volumes/SHARDDS_data/survey_disk/FomC/raw/SPHER.2015-10-30T01:23:51.122.fits!
+21:13:30 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 890] Subtracting dark...
+21:13:30 [ INFO  ] SPH: [SPH: sph_common_science.c, sph_common_science_calibrate_raw, 894] Dividing flat...
+21:13:30 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 146700/1048576
+21:13:30 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389f07950:0x7f8389f07960:0x7f8389f07968): angle=0 (2:2)
+21:13:31 [ INFO  ] sph_master_frame_interpolate_bpix: Interpolated master frame bad pixel(s): 142435/1048576
+21:13:31 [ INFO  ] sph_transform_rotate_: FFT-rotate(0x7f8389aa1370:0x7f8389aa1380:0x7f8389aa1388): angle=0 (2:2)
+21:37:38 [ ERROR ] SPH: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format
+21:37:38 [ ERROR ] SPH: [SPH: sph_cube.c, sph_cube_finalise_file, 405] Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format
+21:56:17 [ ERROR ] SPH: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format
+21:56:17 [ ERROR ] SPH: [SPH: sph_cube.c, sph_cube_finalise_file, 405] Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format
+22:00:56 [ ERROR ] SPH: [SPH: sph_cube.c, sph_cube_finalise_file, 383] File read/write error
+22:00:56 [ ERROR ] SPH: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 383] File read/write error
+22:00:56 [ ERROR ] SPH: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 383] File read/write error
+22:00:56 [ ERROR ] SPH: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 383] File read/write e
+22:00:56 [ ERROR ] SPH: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_
+22:00:56 [ ERROR ] SPH: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 495] File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ir
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level: Dumping all 19 error(s):
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [1/19] 'Bad file format: "error reading from FITS file" from CFITSIO (ver. 3.36) ffgpv()=108. filename='SPHER.2015-10-30T01:23:51.122_left_e02.fits', pnum=1, hdumov=0, NAXIS=3, NAXIS1=1024, NAXIS2=1024' (6) at cpl_image_load_:cpl_image_io.c:2970
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [2/19] 'Bad file format: "could not close the file" from CFITSIO (ver. 3.36) ffclos()=110. filename='SPHER.2015-10-30T01:23:51.122_left_e02.fits', im_type=1048576, xtnum=0' (6) at cpl_imagelist_load_one:cpl_imagelist_io.c:908
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [3/19] 'Bad file format' (6) at cpl_imagelist_load:cpl_imagelist_io.c:122
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [4/19] 'Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format' (6) at sph_cube_finalise_file:sph_cube.c:383
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [5/19] 'Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 405] Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format' (6) at sph_cube_finalise_file:sph_cube.c:405
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [6/19] 'Bad file format: "error reading from FITS file" from CFITSIO (ver. 3.36) ffgpv()=108. filename='SPHER.2015-10-30T01:23:51.122_right_e00.fits', pnum=1, hdumov=0, NAXIS=3, NAXIS1=1024, NAXIS2=1024' (6) at cpl_image_load_:cpl_image_io.c:2970
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [7/19] 'Bad file format: "could not close the file" from CFITSIO (ver. 3.36) ffclos()=110. filename='SPHER.2015-10-30T01:23:51.122_right_e00.fits', im_type=1048576, xtnum=0' (6) at cpl_imagelist_load_one:cpl_imagelist_io.c:908
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [8/19] 'Bad file format' (6) at cpl_imagelist_load:cpl_imagelist_io.c:122
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [9/19] 'Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format' (6) at sph_cube_finalise_file:sph_cube.c:383
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [10/19] 'Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 405] Bad file format: [SPH: sph_cube.c, sph_cube_finalise_file, 383] Bad file format' (6) at sph_cube_finalise_file:sph_cube.c:405
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [11/19] 'File read/write error: "could not open the named file" from CFITSIO (ver. 3.36) ffdkopn()=104. filename='SPHER.2015-10-30T01:23:51.122_total_e02.fits', position=0' (5) at cpl_propertylist_load:cpl_propertylist.c:6861
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [12/19] 'File read/write error: "could not open the named file" from CFITSIO (ver. 3.36) ffdkopn()=104. filename='SPHER.2015-10-30T01:23:51.122_total_e03.fits', im_type=1048576, xtnum=0' (5) at cpl_imagelist_load_one:cpl_imagelist_io.c:864
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [13/19] 'File read/write error' (5) at cpl_imagelist_load:cpl_imagelist_io.c:122
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [14/19] 'File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 383] File read/write error' (5) at sph_cube_finalise_file:sph_cube.c:383
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [15/19] 'File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 383] File read/write error' (5) at sph_cube_finalise_file:sph_cube.c:405
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [16/19] 'File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 405] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_file, 383] File read/write e' (5) at sph_ird_common_science_process_cubes:sph_ird_common_science.c:539
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [17/19] 'File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 539] File read/write error: [SPH: sph_cube.c, sph_cube_finalise_' (5) at sph_ird_common_science_process_cubes:sph_ird_common_science.c:550
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [18/19] 'File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_common_science_process_cubes, 550] File read/write error: [SPH: sph_ird_common_science.c, sph_ir' (5) at sph_ird_science_dbi_process_cubes:sph_ird_science_dbi_run.c:482
+22:00:56 [ ERROR ] cpl_errorstate_dump_one_level:     [19/19] 'File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 495] File read/write error: [SPH: sph_ird_science_dbi_run.c, sph_ird_science_dbi_process_cubes, 482] File read/write error: [SPH: sph_ird_common_science.c, sph_ird_' (5) at sph_ird_science_dbi_process_cubes:sph_ird_science_dbi_run.c:495

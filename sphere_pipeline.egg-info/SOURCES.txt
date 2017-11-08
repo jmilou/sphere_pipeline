@@ -1,0 +1,7 @@
+setup.py
+sphere_pipeline.egg-info/PKG-INFO
+sphere_pipeline.egg-info/SOURCES.txt
+sphere_pipeline.egg-info/dependency_links.txt
+sphere_pipeline.egg-info/not-zip-safe
+sphere_pipeline.egg-info/requires.txt
+sphere_pipeline.egg-info/top_level.txt
