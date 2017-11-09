@@ -109,7 +109,7 @@ class IrdisDataHandler(DataHandler):
                     'HIERARCH ESO INS COMB IFLT']
     _files_to_read = ['sparta_atmospheric_params*.csv','mass_dimm*.csv','dimm*.csv',\
                          'old_dimm*.csv','sparta_IR_DTTS*.csv','sparta_visible_WFS*.csv',\
-                         'slodar*.csv','sphere_ambi*csv','asm*csv','ecmwf*csv']
+                         'slodar*.csv','sphere_ambi*csv','asm*csv','ecmwf*csv','lathpro*csv']
     
     
     def __init__(self,pathRaw,pathReduc,fileNames,name='irdis_file',coordOrigin='derot',plot=True):
