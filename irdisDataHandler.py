@@ -38,7 +38,8 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import glob
 import pandas as pd
-from sparta import interpolate_date,query_simbad,plot_sparta_data
+from plot_sparta_data import plot_sparta_data
+from query_eso_archive import interpolate_date,query_simbad
 import pdb
 from itertools import repeat
 
