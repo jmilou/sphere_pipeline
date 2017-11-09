@@ -753,7 +753,7 @@ class IrdisDataHandler(DataHandler):
         if force or len(glob.glob(os.path.join(folder,'summary*.csv')))==0: 
             if debug==False:
                 print('Script on-going... be patient')
-            plot_sparta_data.plot_sparta_data(path_raw=folder,path_output=folder,plot=True,debug=debug)
+            plot_sparta_data(path_raw=folder,path_output=folder,plot=True,debug=debug)
         elif len(glob.glob(os.path.join(folder,'summary*.csv')))==1: 
             print('The folder {0:s} already contains the summary file {1:s}, so the script to extract data from sparta was not run'.format(folder,glob.glob(os.path.join(folder,'summary*.csv'))[0]))
             print('If you want to run it anyway and overwrite the current output, use the option force=True')
