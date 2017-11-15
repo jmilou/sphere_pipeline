@@ -178,11 +178,14 @@ def waffle_spot_positions(centerxy,filter_name='B_H',waffle_pattern='x'):
         - filter_name among 'B_Y', 'B_J', 'B_H', 'B_Ks'
         - star_center: star approximate center position [x,y]
         - waffle_pattern: 'x' (default) or '+'
+    Output:
+        - list of 4 pairs [x,y] given the waffle spot center for the 
+        upper left, upper right, lower left and lower right waffle.
     """
     if waffle_pattern == 'x':
         spot_pa = np.deg2rad(np.array([45.,135.,225.,315.]))
     else:
-        print('Warning, unction never tested for "+"...')
+        print('Warning, function never tested for "+"...')
         spot_pa = np.deg2rad(np.array([0.,90.,180.,270.]))
     if filter_name == 'B_Y':
         radius = 32.
@@ -197,7 +200,7 @@ def waffle_spot_positions(centerxy,filter_name='B_H',waffle_pattern='x'):
     waffle_ur_pos = [int(np.fix(centerxy[0]+radius*np.cos(spot_pa[0]))),\
                      int(np.fix(centerxy[1]+radius*np.sin(spot_pa[0])))]
     waffle_ul_pos = [int(np.fix(centerxy[0]+radius*np.cos(spot_pa[1]))),\
-                            int(np.fix(centerxy[1]+radius*np.sin(spot_pa[1])))]
+                     int(np.fix(centerxy[1]+radius*np.sin(spot_pa[1])))]
     waffle_ll_pos = [int(np.fix(centerxy[0]+radius*np.cos(spot_pa[2]))),\
                      int(np.fix(centerxy[1]+radius*np.sin(spot_pa[2])))]
     waffle_lr_pos = [int(np.fix(centerxy[0]+radius*np.cos(spot_pa[3]))),\
@@ -266,7 +269,7 @@ def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waff
         ny,nx =  waffle_cube.shape
     else:
         nframes,ny,nx = waffle_cube.shape
-    if centerguessxy is not None:
+    if centerguessxy is None:
         centerguessxy=[nx/2,ny/2]
     spot_pos = np.asarray(waffle_spot_positions(centerguessxy,filter_name=filter_name,waffle_pattern=waffle_pattern))
     subimage_names = ['upper_left','upper_right','lower_left','lower_right']
@@ -274,7 +277,7 @@ def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waff
     centerfitxy = np.ndarray((nframes,2))
     fwhm = theoretical_sphere_fwhm(filter_name)[0]
     for i in range(nframes):
-        if nframes==1:
+        if len(waffle_cube.shape) == 2:
             img = waffle_cube
         else:
             img = waffle_cube[i,:,:]

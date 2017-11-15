@@ -42,6 +42,7 @@ from plot_sparta_data import plot_sparta_data
 from query_eso_archive import interpolate_date,query_simbad
 import pdb
 from itertools import repeat
+from rebin import rebin2d
 
 path_data = os.path.join(os.path.dirname(os.path.abspath(__file__)),'sphere_data')
 
@@ -602,14 +603,16 @@ class IrdisDataHandler(DataHandler):
         return reg_string
                
     def write_master_cube(self,camera='left',centerxy=None,size=None,frameType='all',
-                          output=False,dithering=True):
+                          output=False,dithering=True,rebin=1):
         """
         Reads the fits files processed by the pipeline and recenters it optionally.
         Create a master cube.
         Input:
             - camera: 'left' or 'right'
             - centerxy: a 2-element list with the coordinate [x,y] of the center 
-                        of the image in the pipeline processed file
+                        of the image in the pipeline processed file. By default,  we
+                        assume the image is centered in self._centerxy=[[477,522],[481,511]].
+                        This list can be composed of couples of floats ior integers.
             - size: the desired output size of the cube. If None, by default the
                     cube keeps the original dimension (512x512)
             -frameType: 'all' if all files from the file list are to be processed,
@@ -617,6 +620,13 @@ class IrdisDataHandler(DataHandler):
                         object (resp. center, flux) files are to be processed.
             -output: boolean (False by default) to return the cube and parallactic angles and 
                     and derotation angles (parallactic angles - pupil offset - true north)
+            - dithering: if True, the dithering is taken into account, by reading the keyword headers
+                        and shifting the frames by the dither amplitude.
+                        If False, dithering is not taken into account (to be used if one reads directly 
+                        the output of the pipeline after calling the centering recipe)
+            -rebin: 1 by default (no rebin). If >1 it rebins the frames spatially by a factor rebin 
+                        (must be an integer), after centering first the frames to keep the star
+                        in the middle of a pixel after rebin is done.  
         """
         if camera != 'left' and camera != 'right':
             raise TypeError('The camera keyword must be "left" or "right". Got {0}'.format(camera))
@@ -633,8 +643,21 @@ class IrdisDataHandler(DataHandler):
             raise TypeError('The center must be a list of 2 integers. Got {0}'.format(centerxy))
         idFrames = self._get_id_frames(frameType)
         totalFrames = self.getTotalNumberFrames(frameType=frameType)
+        if rebin==1:
+            cube = np.ndarray([totalFrames,size,size])
+            cube_name = self._name+'_{0:03d}x{1:03d}_'.format(size,size)+camera+'_'+frameType+'.fits'
+        else:
+            if size != self._rowNb:
+                print('The rebin option is not available for a size different than {0:d}'.format(self._rowNb))
+                size = self._rowNb
+            if np.mod(rebin,2)==0:
+                size_rebin = np.divide(size-rebin,rebin)
+            else:                
+                size_rebin = np.divide(size,rebin)
+            print("Spatial rebin by a factor {0:d}. The new images will be {1:d}x{1:d}px".format(rebin,size_rebin))
+            cube = np.ndarray([totalFrames,size_rebin,size_rebin])            
+            cube_name = self._name+'_{0:03d}x{0:03d}_rebinned_{1:03d}x{1:03d}_'.format(size,size_rebin)+camera+'_'+frameType+'.fits'
         print('Creating the master cube of {0:3d} frames of size {1:4d}x{2:4d}...'.format(totalFrames,size,size))
-        cube = np.ndarray([totalFrames,size,size])
         cube.fill(np.nan)
         parang = np.ndarray((totalFrames))
         mjd = np.ndarray((totalFrames))
@@ -655,36 +678,68 @@ class IrdisDataHandler(DataHandler):
                 centery = int(centerxy[1]+self._keywords['HIERARCH ESO INS1 DITH POSY'][idFrames[i]])            
             else:
                 centerx = int(centerxy[0])
-                centery = int(centerxy[1])                            
-            original_ll_x = np.max([0,centerx-size/2])
-            original_ll_y = np.max([0,centery-size/2])
-            if np.mod(size,2) == 0:
-                original_ur_x = np.min([self._columnNb,centerx+size/2])
-                original_ur_y = np.min([self._rowNb,centery+size/2])
-            else:
-                original_ur_x = np.min([self._columnNb,centerx+size/2+1])
-                original_ur_y = np.min([self._rowNb,centery+size/2+1])                
-            targetSpan_x = original_ur_x - original_ll_x 
-            targetSpan_y = original_ur_y - original_ll_y 
-            if original_ll_x > 0:
-                target_ll_x = 0
-            else:
-                target_ll_x = size/2-centerx
-            if original_ll_y > 0:
-                target_ll_y = 0
-            else:
-                target_ll_y = size/2 - centery
-            cube[counter:counter+ndit,target_ll_y:target_ll_y+targetSpan_y,target_ll_x:target_ll_x+targetSpan_x] = \
-                cube_pipeline[:,original_ll_y:original_ur_y,original_ll_x:original_ur_x]
-            subpixel_shift = np.fix(centerxy) - centerxy  #remaining shift
-            if subpixel_shift[0] != 0. or subpixel_shift[1] != 0:
+                centery = int(centerxy[1])            
+            if rebin==1:  #no rebin              
+                original_ll_x = np.max([0,centerx-size/2])
+                original_ll_y = np.max([0,centery-size/2])
+                if np.mod(size,2) == 0:
+                    original_ur_x = np.min([self._columnNb,centerx+size/2])
+                    original_ur_y = np.min([self._rowNb,centery+size/2])
+                else:
+                    original_ur_x = np.min([self._columnNb,centerx+size/2+1])
+                    original_ur_y = np.min([self._rowNb,centery+size/2+1])                
+                targetSpan_x = original_ur_x - original_ll_x 
+                targetSpan_y = original_ur_y - original_ll_y 
+                if original_ll_x > 0:
+                    target_ll_x = 0
+                else:
+                    target_ll_x = size/2-centerx
+                if original_ll_y > 0:
+                    target_ll_y = 0
+                else:
+                    target_ll_y = size/2 - centery
+                cube[counter:counter+ndit,target_ll_y:target_ll_y+targetSpan_y,target_ll_x:target_ll_x+targetSpan_x] = \
+                    cube_pipeline[:,original_ll_y:original_ur_y,original_ll_x:original_ur_x]
+                subpixel_shift = np.fix(centerxy) - centerxy  #remaining shift
+                if subpixel_shift[0] != 0. or subpixel_shift[1] != 0:
+                    for k in range(ndit):
+                        tmp = cube[counter+k,:,:]
+                        cube[counter+k,:,:] = vip.preproc.recentering.frame_shift(tmp, \
+                            subpixel_shift[1], subpixel_shift[0],\
+                            imlib='opencv') #'ndimage-fourier')#, interpolation='bicubic'
+            elif rebin>1 and np.mod(rebin,2)==1: #we rebin by an odd number
+                #we center the  star on the pixel of index 512,512 first
                 for k in range(ndit):
-                    tmp = cube[counter+k,:,:]
-                    cube[counter+k,:,:] = vip.preproc.recentering.frame_shift(tmp, subpixel_shift[1], subpixel_shift[0],\
-                        imlib='ndimage-fourier')#, interpolation='bicubic')
+#                    fits.writeto(os.path.join(self._pathReduc,'img_{0:03d}_before_shift.fits'.format(k)),cube_pipeline[counter+k,:,:],header=self.firstHeader,clobber=True,output_verify='ignore')
+                    tmp = vip.preproc.recentering.frame_shift(cube_pipeline[counter+k,:,:], \
+                                centerxy[1]-self._columnNb//2, centerxy[0]-self._rowNb//2,\
+                                imlib='opencv') #'ndimage-fourier')#, interpolation='bicubic')
+#                    fits.writeto(os.path.join(self._pathReduc,'img_{0:03d}_after_shift.fits'.format(k)),tmp,header=self.firstHeader,clobber=True,output_verify='ignore')
+                    px_before_central_px = self._rowNb//2-rebin//2
+                    px_after_central_px = self._rowNb//2-rebin//2-1 # we have 1px less
+                    start_r = np.mod(px_before_central_px,rebin)
+                    end_r = self._rowNb - np.mod(px_after_central_px,rebin)
+#                    print('The full frames were centered in {0:d},{1:d}. We skipped {2:d}px before and {3:d}px after to leave {4:d}px = {5:d}rebinned px'.format(\
+#                          self._columnNb//2,self._rowNb//2,rebin//2,rebin//2-1,end_r,end_r-start_r,size_rebin//rebin))
+                    cube[counter+k,:,:] = rebin2d(tmp[start_r:end_r,start_r:end_r],\
+                        (size_rebin,size_rebin))
+            else:
+                #we center the  star on the pixel of index 511.5,511.5 first
+                for k in range(ndit):
+                    tmp = vip.preproc.recentering.frame_shift(cube_pipeline[counter+k,:,:], \
+                                centerxy[1]-(self._columnNb//2-0.5), centerxy[0]-(self._rowNb//2-0.5),\
+                                imlib='opencv') #'ndimage-fourier')#, interpolation='bicubic')
+                    px_before_central_px = self._rowNb//2-rebin//2 # should be even
+                    start_r = np.mod(px_before_central_px,rebin)
+                    end_r = self._rowNb-start_r # this is symmetrical here
+#                    print('The full frames were centered in {0:.1f},{1:.1f}. We skipped {2:d}px before and {3:d}px after to leave {4:d}px = {5:d}rebinned px'.format(\
+#                          self._columnNb//2-0.5,self._rowNb//2-0.5,px_before_central_px,rebin//2,rebin//2,\
+#                          end_r-start_r,size_rebin//rebin))
+#                    print('We start reading from {0:d} to {1:d} or {2:d}px'.format(start_r,end_r,end_r-start_r))
+                    cube[counter+k,:,:] = rebin2d(tmp[start_r:end_r,start_r:end_r],(size_rebin,size_rebin))
             counter = counter + ndit
         derotation_angles = parang-self.true_north-self.pupil_offset
-        fits.writeto(os.path.join(self._pathReduc,self._name+'_{0:03d}x{1:03d}_'.format(size,size)+camera+'_'+frameType+'.fits'),cube,header=self.firstHeader,clobber=True,output_verify='ignore')
+        fits.writeto(os.path.join(self._pathReduc,cube_name),cube,header=self.firstHeader,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_parang_'+frameType+'.fits'),parang,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_derotation_angles_'+frameType+'.fits'),derotation_angles,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_ha_'+frameType+'.fits'),hour_angle,clobber=True,output_verify='ignore')
