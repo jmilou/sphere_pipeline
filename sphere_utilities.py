@@ -16,6 +16,7 @@ from astropy import units as u
 from astropy.time import Time
 import angles as a
 from astropy.coordinates import EarthLocation
+from photutils import RectangularAperture,aperture_photometry
 
 path = os.path.join(os.path.dirname(os.path.abspath(__file__)) ,'sphere_data')
 
@@ -263,6 +264,9 @@ def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waff
         - save: bool wether to save or not the ds9 region file (True by default)
         - sigfactor: the number of stdev for sigma thresholding before the detection 
         of the peak (6 by default)
+    Output
+        - centerfitxy: 2-element array with the center in X (first value) and Y (2nd value)
+        - shift:  2-element array with the shift in X (first value) and Y (2nd value) to recenter the array
     """
     if len(waffle_cube.shape) == 2:
         nframes = 1
@@ -406,6 +410,58 @@ def analyse_coords_from_header(filename,silent=False):
 #    return diff_alt.to(u.arcsec).value,diff_az.to(u.arcsec).value
     return Jcurrent_pointing_coords,Jcurrent_drot_coords
 
+def spider_aperture_photometry(cube,rin,rout,width=4,full_output=False):
+    """
+    Function that performs apterure photometry in rectangle oriented along the direction
+    of the spiders and starting at a radius rin up to a radius rout with a width of 4 pixels by default
+    Input:
+        - cube: a cube or a frame
+        - rin: the inner radius to start the aperture photmetry
+        - rout: the outer radius to stop the aperture photometry (the rectangle
+        has a length of rout-rin)
+        - width: the size of the rectangle perpendicular to the spider direction
+        - full_output: if yes returns a multimensional array (nframes,4) with the
+        aperture photometry for each spider. Else returns only the mean value for each frame
+    Output:
+        see full_output
+    """
+    shape=cube.shape
+    if len(shape)==2:
+        nframes=1
+        sizex=shape[1]
+        sizey=shape[0]
+        cube = cube.reshape(1,sizey,sizex)
+    else:
+        nframes=shape[0]
+        sizey=shape[1]
+        sizex=shape[2]
+    spider_pa = np.array([40,140,220,320])
+    spider_pa_sky = spider_pa+20
+    center_radius = (rin+rout)/2.
+    xcenter = sizex//2+center_radius*np.cos(np.deg2rad(spider_pa))
+    ycenter = sizey//2+center_radius*np.sin(np.deg2rad(spider_pa))
+    aper_phot = np.ndarray((nframes,4))
+    aper_phot_sky = np.ndarray((nframes,4))
+    for i in range(4):
+        aper = RectangularAperture((xcenter[i],ycenter[i]), rout-rin, width, np.deg2rad(spider_pa[i]))
+        aper_sky = RectangularAperture((xcenter[i],ycenter[i]), rout-rin, width, np.deg2rad(spider_pa_sky[i]))
+        for k in range(nframes):
+            aper_phot[k,i] = aperture_photometry(cube[k,:,:],aper)['aperture_sum'][0]
+            aper_phot_sky[k,i] = aperture_photometry(cube[k,:,:],aper_sky)['aperture_sum'][0]
+    if full_output:
+        return aper_phot - np.mean(aper_phot_sky,axis=1)
+    else:
+        return np.mean(aper_phot,axis=1) - np.mean(aper_phot_sky,axis=1)
+    
 if __name__ == "__main__":
     tr = sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=1.)
     print(tr)
+    ap = spider_aperture_photometry(cube_rebin,60,80,width=8,full_output=True)
+    plt.plot(ap,color='blue')
+#    plt.plot(ap[:,1],color='red')
+    plt.grid()
+    threshold = np.arange(10,30,2)
+    fraction_filtered = np.asarray([np.sum(ap>thresh)*100./len(ap) for thresh in threshold])
+    plt.plot(threshold,fraction_filtered)   
+    bad_frames = ap>10
+    good_frames = ap<=10

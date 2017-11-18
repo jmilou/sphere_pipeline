@@ -23,9 +23,11 @@ from dataHandler import DataHandler
 import angles as a
 import sphere_utilities as sph
 from image_tools import distance_array
+from cosmetics_julien import correctBadPixelInCube
 import numpy as np
 import os,sys
 from astropy.io import ascii,fits
+from scipy.ndimage import median_filter
 #from astroquery.simbad import Simbad
 from astropy import coordinates as coords
 from astropy import units as u
@@ -603,7 +605,7 @@ class IrdisDataHandler(DataHandler):
         return reg_string
                
     def write_master_cube(self,camera='left',centerxy=None,size=None,frameType='all',
-                          output=False,dithering=True,rebin=1):
+                          output=False,dithering=True,rebin=1,clean=0):
         """
         Reads the fits files processed by the pipeline and recenters it optionally.
         Create a master cube.
@@ -673,6 +675,8 @@ class IrdisDataHandler(DataHandler):
             hour_angle[counter:counter+ndit] = data_angles['hour_angle']
             mjd[counter:counter+ndit] = data_angles['mjd']
             cube_pipeline = fits.getdata(pipelineName)
+            if clean>0:
+                cube_pipeline = correctBadPixelInCube(cube_pipeline,threshold=clean,verbose=False)
             if dithering:
                 centerx = int(centerxy[0]+self._keywords['HIERARCH ESO INS1 DITH POSX'][idFrames[i]])
                 centery = int(centerxy[1]+self._keywords['HIERARCH ESO INS1 DITH POSY'][idFrames[i]])            
@@ -710,10 +714,13 @@ class IrdisDataHandler(DataHandler):
             elif rebin>1 and np.mod(rebin,2)==1: #we rebin by an odd number
                 #we center the  star on the pixel of index 512,512 first
                 for k in range(ndit):
+                    fits.writeto('/Users/jmilli/Desktop/image_initial_{0:d}.fits'.format(k),cube_pipeline[k,:,:],clobber=True)
+                    fits.writeto('/Users/jmilli/Desktop/image_blurred_{0:d}.fits'.format(k),median_filter(cube_pipeline[k,:,:],rebin),clobber=True)
 #                    fits.writeto(os.path.join(self._pathReduc,'img_{0:03d}_before_shift.fits'.format(k)),cube_pipeline[counter+k,:,:],header=self.firstHeader,clobber=True,output_verify='ignore')
-                    tmp = vip.preproc.recentering.frame_shift(cube_pipeline[counter+k,:,:], \
-                                centerxy[1]-self._columnNb//2, centerxy[0]-self._rowNb//2,\
+                    tmp = vip.preproc.recentering.frame_shift(median_filter(cube_pipeline[k,:,:],rebin), \
+                                self._columnNb//2-centerxy[1], self._rowNb//2-centerxy[0],\
                                 imlib='opencv') #'ndimage-fourier')#, interpolation='bicubic')
+                    fits.writeto('/Users/jmilli/Desktop/image_recentered_{0:d}.fits'.format(k),tmp,clobber=True)
 #                    fits.writeto(os.path.join(self._pathReduc,'img_{0:03d}_after_shift.fits'.format(k)),tmp,header=self.firstHeader,clobber=True,output_verify='ignore')
                     px_before_central_px = self._rowNb//2-rebin//2
                     px_after_central_px = self._rowNb//2-rebin//2-1 # we have 1px less
@@ -723,12 +730,17 @@ class IrdisDataHandler(DataHandler):
 #                          self._columnNb//2,self._rowNb//2,rebin//2,rebin//2-1,end_r,end_r-start_r,size_rebin//rebin))
                     cube[counter+k,:,:] = rebin2d(tmp[start_r:end_r,start_r:end_r],\
                         (size_rebin,size_rebin))
+                    fits.writeto('/Users/jmilli/Desktop/image_rebinned_{0:d}.fits'.format(k),rebin2d(tmp[start_r:end_r,start_r:end_r],\
+                        (size_rebin,size_rebin)),clobber=True)
             else:
                 #we center the  star on the pixel of index 511.5,511.5 first
                 for k in range(ndit):
-                    tmp = vip.preproc.recentering.frame_shift(cube_pipeline[counter+k,:,:], \
-                                centerxy[1]-(self._columnNb//2-0.5), centerxy[0]-(self._rowNb//2-0.5),\
+                    fits.writeto('/Users/jmilli/Desktop/image_initial_{0:d}.fits'.format(k),cube_pipeline[k,:,:],clobber=True)
+                    fits.writeto('/Users/jmilli/Desktop/image_blurred_{0:d}.fits'.format(k),median_filter(cube_pipeline[k,:,:],rebin),clobber=True)
+                    tmp = vip.preproc.recentering.frame_shift(median_filter(cube_pipeline[k,:,:],rebin), \
+                                (self._columnNb//2-0.5)-centerxy[1], (self._rowNb//2-0.5)-centerxy[0],\
                                 imlib='opencv') #'ndimage-fourier')#, interpolation='bicubic')
+                    fits.writeto('/Users/jmilli/Desktop/image_recentered_{0:d}.fits'.format(k),tmp,clobber=True)
                     px_before_central_px = self._rowNb//2-rebin//2 # should be even
                     start_r = np.mod(px_before_central_px,rebin)
                     end_r = self._rowNb-start_r # this is symmetrical here
@@ -737,6 +749,8 @@ class IrdisDataHandler(DataHandler):
 #                          end_r-start_r,size_rebin//rebin))
 #                    print('We start reading from {0:d} to {1:d} or {2:d}px'.format(start_r,end_r,end_r-start_r))
                     cube[counter+k,:,:] = rebin2d(tmp[start_r:end_r,start_r:end_r],(size_rebin,size_rebin))
+                    fits.writeto('/Users/jmilli/Desktop/image_rebinned_{0:d}.fits'.format(k),rebin2d(tmp[start_r:end_r,start_r:end_r],\
+                        (size_rebin,size_rebin)),clobber=True)
             counter = counter + ndit
         derotation_angles = parang-self.true_north-self.pupil_offset
         fits.writeto(os.path.join(self._pathReduc,cube_name),cube,header=self.firstHeader,clobber=True,output_verify='ignore')
