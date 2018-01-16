@@ -456,12 +456,12 @@ def spider_aperture_photometry(cube,rin,rout,width=4,full_output=False):
 if __name__ == "__main__":
     tr = sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=1.)
     print(tr)
-    ap = spider_aperture_photometry(cube_rebin,60,80,width=8,full_output=True)
-    plt.plot(ap,color='blue')
-#    plt.plot(ap[:,1],color='red')
-    plt.grid()
-    threshold = np.arange(10,30,2)
-    fraction_filtered = np.asarray([np.sum(ap>thresh)*100./len(ap) for thresh in threshold])
-    plt.plot(threshold,fraction_filtered)   
-    bad_frames = ap>10
-    good_frames = ap<=10
+#    ap = spider_aperture_photometry(cube_rebin,60,80,width=8,full_output=True)
+#    plt.plot(ap,color='blue')
+##    plt.plot(ap[:,1],color='red')
+#    plt.grid()
+#    threshold = np.arange(10,30,2)
+#    fraction_filtered = np.asarray([np.sum(ap>thresh)*100./len(ap) for thresh in threshold])
+#    plt.plot(threshold,fraction_filtered)   
+#    bad_frames = ap>10
+#    good_frames = ap<=10

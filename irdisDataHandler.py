@@ -144,7 +144,7 @@ class IrdisDataHandler(DataHandler):
         """
         DataHandler.__init__(self,pathRaw,pathReduc,self._keywordList,fileNames,name)
         self.pixel_scale = 0.01225
-        self.pupil_offset =  -135.99
+        self.pupil_offset =  135.99
         self.set_common_parameters(coordOrigin=coordOrigin)
         self.compute_properties(plot=plot)
         self.theoretical_fwhm = self.get_theoretical_fwhm()
@@ -565,11 +565,11 @@ class IrdisDataHandler(DataHandler):
         # The spiders are at PA_detector = 50 / 130 / 230 / 310 (-50) 
         # 40deg from horizontal
         paDetectorSpider = np.array([50,130,230,310])
-        paOnSkySpider_mean = np.mod(paDetectorSpider + (parang_mean - self.true_north - self.pupil_offset),360)
-        paOnSkySpider_start = np.mod(paDetectorSpider + (parang_start - self.true_north - self.pupil_offset),360)
-        paOnSkySpider_end = np.mod(paDetectorSpider + (parang_end - self.true_north - self.pupil_offset),360)
+        paOnSkySpider_mean = np.mod(paDetectorSpider + (parang_mean + self.true_north + self.pupil_offset),360)
+        paOnSkySpider_start = np.mod(paDetectorSpider + (parang_start + self.true_north + self.pupil_offset),360)
+        paOnSkySpider_end = np.mod(paDetectorSpider + (parang_end + self.true_north + self.pupil_offset),360)
         paDMaxis = np.array([90,270])
-        paOnSkyDMaxis_mean = np.mod(paDMaxis + (parang_mean - self.true_north - self.pupil_offset),360)
+        paOnSkyDMaxis_mean = np.mod(paDMaxis + (parang_mean + self.true_north + self.pupil_offset),360)
         reg_string=\
         """# Region file format: DS9 version 4.1
         global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1
@@ -740,7 +740,7 @@ class IrdisDataHandler(DataHandler):
 #                    print('We start reading from {0:d} to {1:d} or {2:d}px'.format(start_r,end_r,end_r-start_r))
                     cube[counter+k,:,:] = rebin2d(tmp[start_r:end_r,start_r:end_r],(size_rebin,size_rebin))
             counter = counter + ndit
-        derotation_angles = parang-self.true_north-self.pupil_offset
+        derotation_angles = parang+self.true_north+self.pupil_offset
         fits.writeto(os.path.join(self._pathReduc,cube_name),cube,header=self.firstHeader,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_parang_'+frameType+'.fits'),parang,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_derotation_angles_'+frameType+'.fits'),derotation_angles,clobber=True,output_verify='ignore')
