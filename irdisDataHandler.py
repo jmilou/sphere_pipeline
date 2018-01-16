@@ -17,6 +17,7 @@ Updates:
 2017-11-01: unwraped the parallactic angle and the wind direction 
         with np.rad2deg(np.unwrap(np.deg2rad(parang)))
         replaced size/2 by size//2
+2018-01-16: changed the sign of pupil_offset to +135.99 in accordance with the UM.
 """
 
 from dataHandler import DataHandler
