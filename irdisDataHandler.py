@@ -18,6 +18,7 @@ Updates:
         with np.rad2deg(np.unwrap(np.deg2rad(parang)))
         replaced size/2 by size//2
 2018-01-16: changed the sign of pupil_offset to +135.99 in accordance with the UM.
+2018-02-04: added the version number
 """
 
 from dataHandler import DataHandler
@@ -86,6 +87,7 @@ class IrdisDataHandler(DataHandler):
         """
        
      # class variables
+    _version = '2.0'
     _rowNb = 1024 
     _columnNb = 1024 
 #    _centerxy = np.array([[473,519],[476,508]]) # center of the coronagraphic mask (0-based index)
@@ -143,6 +145,7 @@ class IrdisDataHandler(DataHandler):
                                         the CPU to compute the derotator angle.
             - plot: boolean. True to see the plot of the true north vs MJD. 
         """
+        print('IrdisDatHandler version {0:s}'.format(self._version))
         DataHandler.__init__(self,pathRaw,pathReduc,self._keywordList,fileNames,name)
         self.pixel_scale = 0.01225
         self.pupil_offset =  135.99

@@ -6,12 +6,13 @@ Created on Mon Oct 30 15:41:34 2017
 @author: cpannetier
 """
 
-import pandas as pd
+
+#import pandas as pd
 import os
 import numpy as np
 import scipy
-from scipy import stats
-from scipy import signal
+#from scipy import stats
+#from scipy import signal
 from astropy.io import fits
 
 import matplotlib.pyplot as plt
@@ -130,9 +131,9 @@ def zero_padding(im, dim):
         dim = dimension of the resulting array
     '''
     sz = im.shape[0]
-    addpix = (dim-sz)/2
+    addpix = (dim-sz)/2.
     if addpix > 0:
-        if type(addpix) == int:
+        if isinstance(addpix,int):
             im = np.pad(im, addpix, 'constant')
         else: 
             addpix = int(addpix)+1
@@ -157,8 +158,8 @@ def ftccd(n):
     Create the transfer function of a CCD matrix of dimension n x n.
     The FT is centered in [n/2,n/2] and normalized to 1. 
  
-    - Formula :
-        FT = sinc(a.u) x sinc (b.v) where a x b are pixels dimensions 
+    - Formule :
+    FT          = sinc(a.u) x sinc (b.v) where a x b are pixels dimensions 
     
     - INPUT:
         im = np.array LxL
@@ -181,7 +182,7 @@ def ftccd(n):
 def mask(r,dim,oc=0):
     '''
     Create a mask of radius r in an array of dimension dim.
-    We can add an central obturation with the parameter oc.
+    We can add an central obscuration with the parameter oc.
  
     - INPUT:
         r = aperture radius
@@ -199,7 +200,7 @@ def mask(r,dim,oc=0):
 
     mask = np.ones((largeur, largeur))
     rho = np.array((np.sqrt(x**2+y**2)) / float(r), dtype=float) # Each pixel is equal to its distance from the center
-    phi = np.array(np.arctan(y, x + (rho == 0.)), dtype=float) # Each pixel is equal to its angle from the x absciss
+#    phi = np.array(np.arctan(y, x + (rho == 0.)), dtype=float) # Each pixel is equal to its angle from the x absciss
 
     mask = mask*((rho <= 1.) & (rho >= oc))
 
@@ -207,8 +208,10 @@ def mask(r,dim,oc=0):
 
 
 
-def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, SUBSTRACT_NOISE=True, VISU=False,VERBOSE=False,ABS=True,\
-                PUPIL=False, APO='APO1',LYOT='ALC2', path = os.getcwd(), path_lib = os.getcwd() + '/Data', outliers=[]):
+def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, \
+                SUBSTRACT_NOISE=True, VISU=False,VERBOSE=False,ABS=True,\
+                PUPIL=False, APO='APO1',LYOT='ALC2', \
+                path_lib = os.getcwd()):
     '''
     Calculate the strehl ratio of an psf image.
     We use the absolute value of the otf, meaning that we assume the PSF to be 
@@ -233,7 +236,6 @@ def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, SUB
         LYOT = Stop Lyot map
         path = working path where are routines
         path_lib = path where are the APO, PUPIL, LYOT and other maps.
-        outliers = fill the outliers list with strehl ratio below 0.4 or above 0.9
         
     - OUTPUT:
         - a scalar number corresponding to the strehl ratio
@@ -241,7 +243,7 @@ def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, SUB
     '''
 
     dim = psf.shape[0]
-
+    print('The psf size is {0:}px'.format(dim))
 
     ###############################################
     ####   CALCULATION OF THE FTO OF THE PSF   ####
@@ -252,7 +254,7 @@ def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, SUB
     otfcorr = np.copy(otf)
     otf = otf/np.max(otf)               # Normalization of the raw OTF
 
-    otfcorr1D = rd.Radial_data(otfcorr)    # rd.Radial_data object containing information such as means or medians 
+    otfcorr1D = rd.Radial_data(otfcorr)    # Radial_data object containing information such as means or medians 
                                         # of annulus of growing radius and 1 pixel width.
     
     
@@ -322,6 +324,7 @@ def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, SUB
     
     # Substraction of background noise
     fcoup = (dim-1)/oversample/2                        # Nyquist spatial frequency (Maximum frequency which makes sens)
+    print('The cutoff frequency is {0:} px'.format(fcoup))
     otfcorr1D = rd.Radial_data(otfcorr)
     plateau = np.mean(otfcorr1D.mean[(int(fcoup)+1):])  # Calculation of noise mean
     otfcorr = otfcorr - plateau                         # Substraction of noise
@@ -441,10 +444,6 @@ def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, SUB
     # Calculation of Strehl ratio
     sr = np.sum(otfcorr)/np.sum(otfairy)
 
-        
-    if (sr < 0.4) or (sr > 0.9):
-        outliers.append((sr))
-
     if VISU:
         print('Strehl ratio: ', sr)
         ###############################################
@@ -471,73 +470,62 @@ def calc_strehl(psf, oversample=1, oc=0, SCALE='LINEAR', FIT=True, POLFIT=2, SUB
     return sr
 
 
+if __name__ == "__main__":
 ### EXAMPLE OF USE ###
 
-path = '/Users/jmilli/Documents/survey_discs/statistics_for_cyril/'
-path_lib = '/Users/jmilli/Dropbox/lib_idl/strehl'
-cube_psf = fits.getdata(os.path.join(path+'psfall_norm_at_SR.fits'))
-
- 
-wl = 1.625e-6 # H band
-D=8. # primary mirror is 8.2m but the pupil is restricted by the 2ndary mirror at 8m
-print('Pupil diameter: {0:.2f}m, wavelength {1:.3f}microns'.format(D,wl*1.e6))
-pixel_nyquist = 0.5*wl/D*180/np.pi*3600. # Nyquist sampling [arcsec/px]
-print('Nyquist sampling: {0:.4f} arcsec/pix'.format(pixel_nyquist))
-pixel_irdis = 0.01225 # pixel scale for IRDIS [arcsec/px]
-irdis_frequency_sampling = 1/pixel_irdis
-print('Irdis sampling: {0:.4f} arcsec/pix'.format(pixel_irdis))
-oversample = pixel_nyquist/pixel_irdis # oversampling factor
-print('Oversampling {0:.3f}   (Nyquist sampling/Irdis sampling)'.format(oversample)) # 1.68379 at H band.
-
-central_obscuration = 1.2/D  
-print('Central obscuration diameter: {0:.2f}%'.format(central_obscuration*100.))
-
-strehls=[]
-outliers=[]
-for i in range(cube_psf.shape[0]):# psf1 in cube_psf:
-    psf1 = cube_psf[i,:,:]    
-    print('Image number', i)
-    i+=1
-    strehls.append(calc_strehl(psf1, oversample=oversample, oc=0, FIT=True, \
-                               SUBSTRACT_NOISE=True,VISU=False, VERBOSE=False,\
-                               ABS=True, PUPIL=True, APO='APO1',LYOT='ALC2',path=path, \
-                               path_lib=path_lib, outliers=outliers))
+    path = '/Users/jmilli/Documents/survey_discs/statistics_for_cyril/'
+    path_lib = '/Users/jmilli/Dropbox/lib_idl/strehl'
+    cube_psf = fits.getdata(os.path.join(path+'psfall_norm_at_SR.fits'))
     
-
-wl = 1588.8e-9
-D=8. # primary mirror is 8.2m but the pupil is restricted by the 2ndary mirror at 8m
-print('Pupil diameter: {0:.2f}m, wavelength {1:.3f}microns'.format(D,wl*1.e6))
-pixel_nyquist = 0.5*wl/D*180/np.pi*3600. # Nyquist sampling [arcsec/px]
-print('Nyquist sampling: {0:.4f} arcsec/pix'.format(pixel_nyquist))
-pixel_irdis = 0.01225 # pixel scale for IRDIS [arcsec/px]
-irdis_frequency_sampling = 1/pixel_irdis
-print('Irdis sampling: {0:.4f} arcsec/pix'.format(pixel_irdis))
-oversample = pixel_nyquist/pixel_irdis # oversampling factor
-print('Oversampling {0:.3f}   (Nyquist sampling/Irdis sampling)'.format(oversample)) # 1.68379 at H band.
-central_obscuration = 1.2/D  
-print('Central obscuration diameter: {0:.2f}%'.format(central_obscuration*100.))
-
-psf = fits.getdata('/Users/jmilli/Documents/SPHERE/psf_star_mag4-6-8/2018-01-27/pipeline/psf_left_cropped.fits')
-psf = psf[1:,1:]
-s = calc_strehl(psf, oversample=oversample, oc=0, FIT=True, \
-                               SUBSTRACT_NOISE=True,VISU=False, VERBOSE=False,\
-                               ABS=True, PUPIL=True, APO='APO1',LYOT='ALC2',path=path, \
-                               path_lib=path_lib, outliers=outliers)
-
-#calc_strehl(psf, oversample=oversample, oc=0, OTF=True, FIT=True, SUBSTRACT_NOISE=True, VISU=True,VERBOSE=False,\
-
-
-#psf = primary[27]
-#calc_strehl(psf, oversample=oversample, oc=0, OTF=True, FIT=True, SCALE='log', SUBSTRACT_NOISE=True, \
-#                               VISU=True, VERBOSE=True,ABS=True, PUPIL=True, APO='APO1',LYOT='ALC2',\
-#                               path=path,path_lib=path_lib)
-
-sr = fits.getdata(path+'sr.fits')
-
-plt.plot(sr, strehls, '*')
-plt.plot([0,1],[0,1])
-
-fits.writeto(os.path.join(path+'strehls_python.fits'),np.asarray(strehls), overwrite=True)
+    D=8. # primary mirror is 8.2m but the pupil is restricted by the 2ndary mirror at 8m
+    central_obscuration = 1.2/D  
+    print('Central obscuration diameter: {0:.2f}%'.format(central_obscuration*100.))
+    pixel_irdis = 0.01225 # pixel scale for IRDIS [arcsec/px]
+    irdis_frequency_sampling = 1/pixel_irdis
+    
+    
+    wl = 1588.8e-9
+    pixel_nyquist = 0.5*wl/D*180/np.pi*3600. # Nyquist sampling [arcsec/px]
+    oversample = pixel_nyquist/pixel_irdis # oversampling factor
+    psf = fits.getdata('/Users/jmilli/Documents/SPHERE/psf_star_mag4-6-8/2018-01-27/pipeline/psf_left_cropped.fits')
+    calc_strehl(psf, oversample=oversample, oc=central_obscuration, FIT=True,\
+            SUBSTRACT_NOISE=True,VISU=True, VERBOSE=True,ABS=True, PUPIL=True, \
+            APO='APO1',LYOT='ALC2', path_lib=path_lib)
+    
+     
+    wl = 1.625e-6 # H band
+    print('Pupil diameter: {0:.2f}m, wavelength {1:.3f}microns'.format(D,wl*1.e6))
+    pixel_nyquist = 0.5*wl/D*180/np.pi*3600. # Nyquist sampling [arcsec/px]
+    print('Nyquist sampling: {0:.4f} arcsec/pix'.format(pixel_nyquist))
+    print('Irdis sampling: {0:.4f} arcsec/pix'.format(pixel_irdis))
+    oversample = pixel_nyquist/pixel_irdis # oversampling factor
+    print('Oversampling {0:.3f}   (Nyquist sampling/Irdis sampling)'.format(oversample)) # 1.68379 at H band.
+    
+    
+    strehls=[]
+    i=0
+    for psf1 in cube_psf:
+        print('Image numero', i)
+        i+=1
+        strehls.append(calc_strehl(psf1, oversample=oversample, oc=central_obscuration, FIT=True,\
+                SUBSTRACT_NOISE=True,VISU=False, VERBOSE=True,ABS=True, PUPIL=True, \
+                APO='APO1',LYOT='ALC2' ,path_lib=path_lib))
+        
+    
+    #calc_strehl(psf, oversample=oversample, oc=0, OTF=True, FIT=True, SUBSTRACT_NOISE=True, VISU=True,VERBOSE=False,\
+    
+    
+    #psf = primary[27]
+    #calc_strehl(psf, oversample=oversample, oc=0, OTF=True, FIT=True, SCALE='log', SUBSTRACT_NOISE=True, \
+    #                               VISU=True, VERBOSE=True,ABS=True, PUPIL=True, APO='APO1',LYOT='ALC2',\
+    #                               path=path,path_lib=path_lib)
+    
+    sr = fits.getdata(os.path.join(path,'sr.fits'))
+    
+    plt.plot(sr, strehls, '*')
+    plt.plot([0,1],[0,1])
+    
+    #fits.writeto('/Users/cpannetier/Documents/strehl/strehls_cyril.fits',np.array(strehls), overwrite=True)
 
 
 
