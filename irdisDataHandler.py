@@ -47,6 +47,7 @@ from query_eso_archive import interpolate_date,query_simbad
 import pdb
 from itertools import repeat
 from rebin import rebin2d
+from scipy.interpolate import interp1d
 
 path_data = os.path.join(os.path.dirname(os.path.abspath(__file__)),'sphere_data')
 
@@ -617,7 +618,8 @@ class IrdisDataHandler(DataHandler):
             - camera: 'left' or 'right'
             - centerxy: a 2-element list with the coordinate [x,y] of the center 
                         of the image in the pipeline processed file. By default,  we
-                        assume the image is centered in self._centerxy=[[477,522],[481,511]].
+                        assume the image is centered in self._centerxy=[477,522] for the left
+                        camera and [481,511] for the right camera.
                         This list can be composed of couples of floats ior integers.
             - size: the desired output size of the cube. If None, by default the
                     cube keeps the original dimension (512x512)
