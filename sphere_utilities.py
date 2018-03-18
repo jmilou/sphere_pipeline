@@ -9,7 +9,7 @@ import numpy as np
 import os #,sys
 from scipy.interpolate import interp1d
 #from photutils.morphology import centroid_2dg
-from vip.var import fit_2dgaussian
+from fit_2d_utilities import fit_2dgaussian
 import matplotlib.pyplot as plt
 from astropy import coordinates as coords
 from astropy import units as u
@@ -209,6 +209,35 @@ def waffle_spot_positions(centerxy,filter_name='B_H',waffle_pattern='x'):
     output = (waffle_ul_pos,waffle_ur_pos,waffle_ll_pos,waffle_lr_pos)
     return output
 
+def waffle_spot_positions_ifs(centerxy,mode='YJ',waffle_pattern='x'):
+    """
+    Return a tuple with coordinates X,Y of the satellite spots in this order:
+    upper left, upper right, lower left, lower right (ready to be used in 
+    vip.calib.recentering.cube_recenter_satspots)
+    Input:
+        - filter_name among 'B_Y', 'B_J', 'B_H', 'B_Ks'
+        - star_center: star approximate center position [x,y]
+        - waffle_pattern: 'x' (default) or '+'
+    Output:
+        - list of 4 pairs [x,y] given the waffle spot center for the 
+        upper left, upper right, lower left and lower right waffle.
+    """
+    if waffle_pattern == 'x':
+        spot_pa = np.deg2rad(np.array([55.,145.,235.,325.]))
+    else:
+        print('Warning, function never tested for "+"...')
+        spot_pa = np.deg2rad(np.array([10.,100.,190.,280.]))
+    if mode == 'YJ':
+        radius = np.linspace(48,67,39)
+#    elif mode == 'YJH':
+#        radius = 35.
+    else:    
+        print('Mode not understood')
+    waffle_posxy = np.ndarray((4,39,2),dtype=int)
+    for i_pa in range(4):
+        waffle_posxy[i_pa,:,0] = np.asarray(np.round(centerxy[0]+radius*np.cos(spot_pa[i_pa])),dtype=int) # y center
+        waffle_posxy[i_pa,:,1] = np.asarray(np.round(centerxy[1]+radius*np.sin(spot_pa[i_pa])),dtype=int) # x center
+    return waffle_posxy
 
 def theoretical_sphere_fwhm(filter_name='B_H',mirror=8.,verbose=True):
     """
@@ -216,32 +245,44 @@ def theoretical_sphere_fwhm(filter_name='B_H',mirror=8.,verbose=True):
     corresponding to the upper wavelength of the filter.
     Input:
         - filter_name: among 'B_Y', 'B_J', 'B_H', 'B_Ks'
-        - mirror (optional): size of the mirror in m (by default 8m due to the
-        undersized Lyot stop in coronagraphy)
+        - mirror (optional): size of the mirror in m (by default 8m)
     Output:
         - array with the left and right FWHM (different in case of DBI filter)
     """
     if filter_name == 'B_Y' or filter_name == 'BB_Y':
         lambda_c=np.ones(2)*1042.5
         delta_lambda=np.ones(2)*139.
+        pixel_scale=12.25/1000.
     elif filter_name == 'B_J' or filter_name == 'BB_J':
         lambda_c=np.ones(2)*1257.5
         delta_lambda=np.ones(2)*197.
-    elif filter_name == 'B_H' or filter_name == 'B_ND-H' or filter_name == 'BB_H':
+        pixel_scale=12.25/1000.
+    elif filter_name == 'B_H' or filter_name == 'B_ND-H' or filter_name == 'BB_H' or filter_name == 'DP_0_BB_H':
         lambda_c=np.ones(2)*1625.5
         delta_lambda=np.ones(2)*291.
+        pixel_scale=12.25/1000.
     elif filter_name == 'B_Ks' or filter_name == 'BB_Ks':
         lambda_c=np.ones(2)*2181.3
         delta_lambda=np.ones(2)*313.5
+        pixel_scale=12.25/1000.
     elif filter_name == 'DB_K12':
         lambda_c=np.array([2102.5,2255.])
         delta_lambda=np.array([102.,109.])
+        pixel_scale=12.25/1000.
     elif filter_name == 'DB_H23':
         lambda_c=np.array([1588.8,1667.1])
         delta_lambda=np.array([53.1,55.6])        
+        pixel_scale=12.25/1000.
+    elif filter_name == 'YJ':
+        lambda_c=np.linspace(960.,1340.,39)
+        delta_lambda=np.median(lambda_c-np.roll(lambda_c,1))        
+        pixel_scale=7.46/1000.
+    elif filter_name == 'YJH':
+        lambda_c=np.linspace(970.,1660.,39)
+        delta_lambda=np.median(lambda_c-np.roll(lambda_c,1))        
+        pixel_scale=7.46/1000.
     else:    
         print('Filter choice not understood')
-    pixel_scale=12.25/1000.
     theoretical_fwhm = np.rad2deg((lambda_c+delta_lambda/2)*1e-9/mirror)*3600/pixel_scale
     if verbose:
         print('Theoretical FWHM: {0:4.2f} (left), {1:4.2f} (right)'.format(theoretical_fwhm[0],theoretical_fwhm[1]))
@@ -259,7 +300,7 @@ def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waff
         - centerguessxy: the list [x0,y0]  where the approximate center is located
         - waffle_pattern: 'x' or '+'  as required from the function waffle_spot_positions
         - path: the path name where to store the results if save=True
-        - rspot: the hlaf side of the sub-images in which the 2d gaussian fit is made, by default 12
+        - rspot: the half side of the sub-images in which the 2d gaussian fit is made, by default 12
         - name: the name of the region file that will be saved
         - save: bool wether to save or not the ds9 region file (True by default)
         - sigfactor: the number of stdev for sigma thresholding before the detection 
@@ -291,7 +332,7 @@ def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waff
             fig, ax = plt.subplots()
             ax.imshow(subimage, cmap='CMRmap', origin='lower',interpolation='nearest')
             ycen,xcen = fit_2dgaussian(subimage, crop=False, cent=None, cropsize=15, fwhmx=fwhm, \
-                fwhmy=fwhm, sigfactor=sigfactor,threshold=True)
+                fwhmy=fwhm, sigfactor=sigfactor,threshold=True,verbose=True,plot=True)
             spot_pos_fitted[i,j,0] = spot_pos[j,0] - rspot + xcen[0] 
             spot_pos_fitted[i,j,1] = spot_pos[j,1] - rspot + ycen[0]
 #            print('Center frame {0:02d} {1:s}: ({2:6.2f} {3:6.2f})'.format(i,subimage_name,\
@@ -322,6 +363,75 @@ def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waff
             f.write('line({0:8.2f},{1:8.2f},{2:8.2f},{3:8.2f})\n'.format(spot_pos_fitted[i,2,0]+1,spot_pos_fitted[i,2,1]+1,spot_pos_fitted[i,1,0]+1,spot_pos_fitted[i,1,1]+1))
             f.close() # you can omit in most cases as the destructor will call it            
         shift = centerfitxy - np.ones(((nframes,2)))*(nx/2)
+    return centerfitxy,shift
+
+def sph_ifs_centerspot(waffle_cube, mode='YJ', centerguessxy=None,waffle_pattern='x',\
+                        path='.',rspot=12,name='waffle',save=True,sigfactor=6):
+    """
+    Returns the position of the center of the frames and the shift to apply to recenter the images, as a tuple (center,shift).
+    Each element is an array of dimension (nframes,2) with the y and x coordinates in the 2nd dimension and the frame number in the
+    first dimentsion
+    Input:
+        - waffle_cube: the cube or frame with the waffle spots
+        - mode: the name of the filter, as required from the function waffle_spot_positions
+        - centerguessxy: the list [x0,y0]  where the approximate center is located
+        - waffle_pattern: 'x' or '+'  as required from the function waffle_spot_positions
+        - path: the path name where to store the results if save=True
+        - rspot: the half side of the sub-images in which the 2d gaussian fit is made, by default 12
+        - name: the name of the region file that will be saved
+        - save: bool wether to save or not the ds9 region file (True by default)
+        - sigfactor: the number of stdev for sigma thresholding before the detection 
+        of the peak (6 by default)
+    Output
+        - centerfitxy: 2-element array with the center in X (first value) and Y (2nd value)
+        - shift:  2-element array with the shift in X (first value) and Y (2nd value) to recenter the array
+    """
+    if len(waffle_cube.shape) == 3:
+        nframes = 1
+        nlambda,ny,nx =  waffle_cube.shape
+    else:
+        nframes,nlambda,ny,nx = waffle_cube.shape
+    if centerguessxy is None:
+        centerguessxy=[nx/2,ny/2]
+    spot_pos = waffle_spot_positions_ifs(centerguessxy,mode=mode,waffle_pattern=waffle_pattern)
+    subimage_names = ['upper_left','upper_right','lower_left','lower_right']
+    subimages_indices = [1,0,2,3]
+    spot_pos_fitted = np.ndarray((nframes,4,nlambda,2))
+    centerfitxy = np.ndarray((nframes,nlambda,2))
+    fwhm_array = theoretical_sphere_fwhm(mode)
+    for i in range(nframes):
+        if len(waffle_cube.shape) == 3:
+            spectral_cube = waffle_cube
+        else:
+            spectral_cube = waffle_cube[i,:,:,:]
+        for ilambda in range(nlambda):
+            for j,subimages_index in enumerate(subimages_indices):
+                # upper left, upper right, lower left, lower right
+                subimage = spectral_cube[ilambda,spot_pos[subimages_index,ilambda,1]-rspot:spot_pos[subimages_index,ilambda,1]+rspot,\
+                                         spot_pos[subimages_index,ilambda,0]-rspot:spot_pos[subimages_index,ilambda,0]+rspot]
+                fig, ax = plt.subplots()
+                ax.imshow(subimage, cmap='CMRmap', origin='lower',interpolation='nearest')
+                ycen,xcen = fit_2dgaussian(subimage, crop=False, cent=None, cropsize=15, fwhmx=fwhm_array[ilambda], \
+                    fwhmy=fwhm_array[ilambda],sigfactor=sigfactor,threshold=True,verbose=True,plot=False)
+                spot_pos_fitted[i,j,ilambda,0] = spot_pos[subimages_index,ilambda,0] - rspot + xcen[0] 
+                spot_pos_fitted[i,j,ilambda,1] = spot_pos[subimages_index,ilambda,1] - rspot + ycen[0]
+            a1 = (spot_pos_fitted[i,3,ilambda,1] - spot_pos_fitted[i,0,ilambda,1]) / (spot_pos_fitted[i,3,ilambda,0] - spot_pos_fitted[i,0,ilambda,0])				
+            b1 = spot_pos_fitted[i,3,ilambda,1]-a1*spot_pos_fitted[i,3,ilambda,0]
+            a2 = (spot_pos_fitted[i,1,ilambda,1] - spot_pos_fitted[i,2,ilambda,1]) / (spot_pos_fitted[i,1,ilambda,0] - spot_pos_fitted[i,2,ilambda,0])				
+            b2 = spot_pos_fitted[i,1,ilambda,1]-a2*spot_pos_fitted[i,1,ilambda,0]
+            centerfitxy[i,ilambda,0] = (b2-b1)/(a1-a2) 
+            centerfitxy[i,ilambda,1] = a1*centerfitxy[i,ilambda,0]+b1	
+            print('Center frame {0:02d} channel {1:02d}: ({2:6.2f} {3:6.2f})'.format(i,\
+                    ilambda,centerfitxy[i,ilambda,0] ,centerfitxy[i,ilambda,1]))
+            if save:            
+                f = open(os.path.join(path,'{0:s}_frame_{1:02d}_channel{2:02d}.reg'.format(name,i,ilambda)),'w')
+                f.write("global color=green dashlist=8 3 width=1 font='helvetica 10 normal roman' select=1 highlite=1 dash=0 fixed=0 edit=1 move=0 delete=1 include=1 source=1\n")
+                f.write("physical\n")
+                f.write('circle({0:8.2f},{1:8.2f},2.5)\n'.format(centerfitxy[i,ilambda,0]+1,centerfitxy[i,ilambda,1]+1))
+                f.write('line({0:8.2f},{1:8.2f},{2:8.2f},{3:8.2f})\n'.format(spot_pos_fitted[i,3,ilambda,0]+1,spot_pos_fitted[i,3,ilambda,1]+1,spot_pos_fitted[i,0,ilambda,0]+1,spot_pos_fitted[i,0,ilambda,1]+1))
+                f.write('line({0:8.2f},{1:8.2f},{2:8.2f},{3:8.2f})\n'.format(spot_pos_fitted[i,2,ilambda,0]+1,spot_pos_fitted[i,2,ilambda,1]+1,spot_pos_fitted[i,1,ilambda,0]+1,spot_pos_fitted[i,1,ilambda,1]+1))
+                f.close() # you can omit in most cases as the destructor will call it            
+            shift = centerfitxy - np.ones(((nframes,nlambda,2)))*(nx/2)
     return centerfitxy,shift
 
 def get_companion_position(centerxy,sep,pa,parang,rotoff=0):
@@ -456,6 +566,7 @@ def spider_aperture_photometry(cube,rin,rout,width=4,full_output=False):
 if __name__ == "__main__":
     tr = sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=1.)
     print(tr)
+    theoretical_sphere_fwhm(filter_name='YJ')
 #    ap = spider_aperture_photometry(cube_rebin,60,80,width=8,full_output=True)
 #    plt.plot(ap,color='blue')
 ##    plt.plot(ap[:,1],color='red')

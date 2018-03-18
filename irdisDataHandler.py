@@ -37,7 +37,8 @@ from astropy.time import Time
 from astropy.coordinates import ICRS, Galactic, FK4, FK5,EarthLocation
 #from astropy.stats import sigma_clip
 #import matplotlib.pyplot as plt
-import vip 
+#import vip_hci as vip
+from fit_2d_utilities import cube_recenter_gauss2d_fit
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import glob
