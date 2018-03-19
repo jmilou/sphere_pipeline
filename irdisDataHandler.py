@@ -492,9 +492,12 @@ class IrdisDataHandler(DataHandler):
         posmax = np.argmax(median_psf * (dist_center<self._rowNb/4))
         posy,posx = np.unravel_index(posmax,median_psf.shape)
 #        vip/preproc/recentering.cube_recenter_gauss2d_fit(array, xy, fwhm=4, subi_size=5, nproc=1,
-        recentered_cube = vip.preproc.recentering.cube_recenter_gauss2d_fit(cube_psf,\
+        recentered_cube = cube_recenter_gauss2d_fit(cube_psf,\
             [posx,posy], fwhm=fwhm, subi_size=5,nproc=1,full_output=False,verbose=True,\
             save_shifts=False, offset=None, negative=False, debug=False)
+#        recentered_cube = vip.preproc.recentering.cube_recenter_gauss2d_fit(cube_psf,\
+#            [posx,posy], fwhm=fwhm, subi_size=5,nproc=1,full_output=False,verbose=True,\
+#            save_shifts=False, offset=None, negative=False, debug=False)
         return recentered_cube
         
     def get_psf_scaling_factor(self,verbose=True):
