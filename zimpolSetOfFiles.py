@@ -70,7 +70,8 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
     def __init__(self,pathRaw,pathReduc,fileNames,badPixelMap=None,\
         name='zimpol_file',masterBias=None,masterFlat=None,\
         badPixel=True,recenter='default',beamShift=False,center=None,\
-        biasOnlyI=False,fft=True):
+        biasOnlyI=False,fft=True,rowMedianSubtraction=False,\
+                      columnMedianSubtraction=False):
         """
         Constructor of the ZimpolSetOfFiles object. 
         Input:
@@ -82,6 +83,12 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
                         with the general start of the file names, e.g. 'SPHERE_ZIMPOL_', 
                         or a list of complete filenames
             - badPixelMap: a map of bad pixel (bad=1, good=0) (optional) 
+            - rowMedianSubtraction: if True, removes the median in each row on a n
+                                    individual frame level to remove an electronic signature
+                                    that can create a noise pattern (horizontal lines)
+            - columnMedianSubtraction: if True, removes the median in each column on a n
+                                    individual frame level to remove an electronic signature
+                                    that can create a noise pattern (vertical lines)
         """
         ZimpolDataHandler.__init__(self,pathRaw,pathReduc,fileNames,name)
         self._scienceFilesIndices = self._get_id_from_dpr_catg('SCIENCE')
@@ -109,6 +116,8 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         self._badPixelCorrection=badPixel
         self.recenter=recenter
         self.beamShift=beamShift
+        self.rowMedianSubtraction = rowMedianSubtraction
+        self.columnMedianSubtraction = columnMedianSubtraction
         self._I = [] # a list of cubes for the 2 cameras
         self._Q = []
         self._U = []
@@ -202,7 +211,9 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
                  biasOnlyI= self._biasOnlyI,recenter=self.recenter,fft=self._fft)
 
         polarimetricCycle = PolarimetricCycle(plusQCube,minusQCube,plusUCube,minusUCube,\
-                                              beamShift=self.beamShift)
+                                              beamShift=self.beamShift,\
+                                              rowMedianSubtraction=self.rowMedianSubtraction,\
+                                              columnMedianSubtraction=self.columnMedianSubtraction)
         
         for icam,cam in enumerate(plusQCube.getCameras()):
             fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_I_cam{1:d}.fits'.format(polarCycleId,cam)),polarimetricCycle._I[icam],plusQCube._header,clobber=True,output_verify='ignore')
@@ -502,8 +513,8 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         norm2_Q_phi = np.ndarray((nb_theta))
         for i,thetai in enumerate(theta0):
             theta_array[i,:,:] = np.mod(theta-np.deg2rad(thetai),2*np.pi)
-            Q_phi[i,:,:] = zimpolSetOfFiles_posang000._Q_rebinned[0]+zimpolSetOfFiles_posang000._U_rebinned[0]*np.sin(2*theta_array[i,:,:])
-            U_phi[i,:,:] = -zimpolSetOfFiles_posang000._Q_rebinned[0]*np.sin(2*theta_array[i,:,:])+zimpolSetOfFiles_posang000._U_rebinned[0]*np.cos(2*theta_array[i,:,:])
+            Q_phi[i,:,:] =  self._Q_rebinned[0]*np.cos(2*theta_array[i,:,:])+self._U_rebinned[0]*np.sin(2*theta_array[i,:,:])
+            U_phi[i,:,:] = -self._Q_rebinned[0]*np.sin(2*theta_array[i,:,:])+self._U_rebinned[0]*np.cos(2*theta_array[i,:,:])
             total_Q_phi[i] = np.nansum(Q_phi[i,:,:]*mask_polar)
             total_U_phi[i] = np.nansum(U_phi[i,:,:]*mask_polar)
             norm2_Q_phi[i] = np.nansum((mask_polar*Q_phi[i,:,:])**2)
@@ -524,13 +535,13 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         
         index_max_total_Q = np.argmax(total_Q_phi)
         index_zero_total_U = np.argmin(np.abs(total_U_phi))
-        print('Max of total Q for theta offset of {0:d}'.format(theta0[index_max_total_Q]))
-        print('Zero of total U for theta offset of {0:d}'.format(theta0[index_zero_total_U]))
+        print('Max of total Q for theta offset of {0:f}'.format(theta0[index_max_total_Q]))
+        print('Zero of total U for theta offset of {0:f}'.format(theta0[index_zero_total_U]))
         
         index_max_norm2_Q = np.argmax(norm2_Q_phi)
         index_min_norm2_Q = np.argmin(norm2_U_phi)
-        print('Max of norm2 Q for theta offset of {0:d}'.format(theta0[index_max_norm2_Q]))
-        print('Min of norm2 U for theta offset of {0:d}'.format(theta0[index_min_norm2_Q]))
+        print('Max of norm2 Q for theta offset of {0:f}'.format(theta0[index_max_norm2_Q]))
+        print('Min of norm2 U for theta offset of {0:f}'.format(theta0[index_min_norm2_Q]))
         return theta0,Q_phi,U_phi
               
 if __name__=='__main__':

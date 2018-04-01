@@ -129,11 +129,11 @@ class ZimpolDataHandler(DataHandler):
         shifty_cam_2 = int(self._keywords['HIERARCH ESO INS3 POS7 POS'][index])
         print('Dithering  correction [X,Y] by [{0:d},{1:d}] native pixels for cam1 and [{2:d},{3:d}] for cam2'.format(\
               shiftx_cam_1,shifty_cam_1,shiftx_cam_2,shifty_cam_2))
-        dither = {1:[shiftx_cam_1,shifty_cam_1//2],2:[shiftx_cam_2,shifty_cam_2//2]}        
+        self.dither = {1:[shiftx_cam_1,shifty_cam_1//2],2:[shiftx_cam_2,shifty_cam_2//2]}        
         header=hduList[0].header
         dico={}
         for camera in self._cameras:
-            dico[camera]=self._extractFramesFromCube(hduList[camera].data,subtractDark=subtractDark,dither=dither[camera])
+            dico[camera]=self._extractFramesFromCube(hduList[camera].data,subtractDark=subtractDark,dither=self.dither[camera])
 #            print(dither)
         hduList.close()
         dico['header']=header
@@ -225,8 +225,6 @@ class ZimpolDataHandler(DataHandler):
             phasePiOdd[:,:,0:self._columnNb//2]  -= dark_phasePi_left[:,1:cube.shape[1]:2,np.newaxis]
             phasePiOdd[:,:,self._columnNb//2: ]  -= dark_phasePi_right[:,1:cube.shape[1]:2,np.newaxis]
         if dither!=[0,0]:
-            print(dither)
-#            fits.writeto('Users/jmilli/desktop/tmp_before_shift.fits',np.median(phase0Even,axis=0),clobber=True)
             if len(dither)!=2:
                 ValueError('The dither must be a two-elements array [shiftx,shifty]')
             phase0Even = np.roll(phase0Even,dither[1],axis=1) # y axis (INS3 POS4 POS/2 for cam1 and INS3 POS7 POS/2 for cam2)

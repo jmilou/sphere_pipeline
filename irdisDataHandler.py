@@ -38,6 +38,7 @@ from astropy.coordinates import ICRS, Galactic, FK4, FK5,EarthLocation
 #from astropy.stats import sigma_clip
 #import matplotlib.pyplot as plt
 #import vip_hci as vip
+import vip
 from fit_2d_utilities import cube_recenter_gauss2d_fit
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
@@ -697,21 +698,21 @@ class IrdisDataHandler(DataHandler):
                 original_ll_x = np.max([0,centerx-size/2])
                 original_ll_y = np.max([0,centery-size/2])
                 if np.mod(size,2) == 0:
-                    original_ur_x = np.min([self._columnNb,centerx+size/2])
-                    original_ur_y = np.min([self._rowNb,centery+size/2])
+                    original_ur_x = np.min([self._columnNb,centerx+size//2])
+                    original_ur_y = np.min([self._rowNb,centery+size//2])
                 else:
-                    original_ur_x = np.min([self._columnNb,centerx+size/2+1])
-                    original_ur_y = np.min([self._rowNb,centery+size/2+1])                
+                    original_ur_x = np.min([self._columnNb,centerx+size//2+1])
+                    original_ur_y = np.min([self._rowNb,centery+size//2+1])                
                 targetSpan_x = original_ur_x - original_ll_x 
                 targetSpan_y = original_ur_y - original_ll_y 
                 if original_ll_x > 0:
                     target_ll_x = 0
                 else:
-                    target_ll_x = size/2-centerx
+                    target_ll_x = size//2-centerx
                 if original_ll_y > 0:
                     target_ll_y = 0
                 else:
-                    target_ll_y = size/2 - centery
+                    target_ll_y = size//2 - centery
                 cube[counter:counter+ndit,target_ll_y:target_ll_y+targetSpan_y,target_ll_x:target_ll_x+targetSpan_x] = \
                     cube_pipeline[:,original_ll_y:original_ur_y,original_ll_x:original_ur_x]
                 subpixel_shift = np.fix(centerxy) - centerxy  #remaining shift

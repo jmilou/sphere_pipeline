@@ -21,29 +21,35 @@ class PolarimetricCycle():
     It creates final Stokes I, Q and U (a 2-element list for cam1 and cam2)
     """
     
-    def __init__(self,plusQ,minusQ,plusU,minusU,beamShift=False,center=None):
+    def __init__(self,plusQ,minusQ,plusU,minusU,beamShift=False,rowMedianSubtraction=False,\
+                      columnMedianSubtraction=False):
         """
         """
         self._plusQ = plusQ
         self._minusQ = minusQ
         self._plusU = plusU
         self._minusU = minusU
-        self._guess_center_xy = center
         self.beamShift=beamShift
+        self.rowMedianSubtraction = rowMedianSubtraction
+        self.columnMedianSubtraction = columnMedianSubtraction
         self.computeStokes()
         return
     
     def computeStokes(self):
         """
         """
-        self._plusQ.collapseFrames()
-        self._plusQ.computeStokes(beamShift=self.beamShift)
-        self._minusQ.collapseFrames()
-        self._minusQ.computeStokes(beamShift=self.beamShift)
-        self._plusU.collapseFrames()
-        self._plusU.computeStokes(beamShift=self.beamShift)
-        self._minusU.collapseFrames()
-        self._minusU.computeStokes(beamShift=self.beamShift)
+#        self._plusQ.collapseFrames()
+        self._plusQ.computeStokes(beamShift=self.beamShift,rowMedianSubtraction=self.rowMedianSubtraction,\
+                      columnMedianSubtraction=self.columnMedianSubtraction)
+#        self._minusQ.collapseFrames()
+        self._minusQ.computeStokes(beamShift=self.beamShift,rowMedianSubtraction=self.rowMedianSubtraction,\
+                      columnMedianSubtraction=self.columnMedianSubtraction)
+#        self._plusU.collapseFrames()
+        self._plusU.computeStokes(beamShift=self.beamShift,rowMedianSubtraction=self.rowMedianSubtraction,\
+                      columnMedianSubtraction=self.columnMedianSubtraction)
+#        self._minusU.collapseFrames()
+        self._minusU.computeStokes(beamShift=self.beamShift,rowMedianSubtraction=self.rowMedianSubtraction,\
+                      columnMedianSubtraction=self.columnMedianSubtraction)
         self._I = []
         self._Q = []
         self._U = []

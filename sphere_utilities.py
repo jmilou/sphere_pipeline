@@ -34,7 +34,7 @@ def sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=0.):
     w_bb = data_bb['col1']
     t_bb = data_bb['col2']
     # DBI filter
-    if (DB_filter != None):
+    if (DB_filter != None and DB_filter != 'P0-90'):
         data_nb = ascii.read(os.path.join(path,'SPHERE_IRDIS_'+DB_filter+'.txt'))
         w_db = data_nb['col1']  
         t_db_1 = data_nb['col2']        

@@ -99,7 +99,6 @@ class ZimpolScienceCube(ZimpolMasterFile):
     Specific methods to ZimpolScienceCube:
         - buildMasterFrame: overloaded operator to be able to take a flat, bias 
         or modem into account.
-        - collapseFrame
         """
         ZimpolMasterFile.__init__(self,pathRaw,pathReduc,fileName,\
                                   badPixelMap,name,subtractDark=False)
@@ -307,7 +306,8 @@ class ZimpolScienceCube(ZimpolMasterFile):
             self._centery.append(dico_center_y)
         return
 
-    def computeStokes(self,beamShift=False,save=True):
+    def computeStokes(self,beamShift=False,save=True,rowMedianSubtraction=False,\
+                      columnMedianSubtraction=False):
         """
         Populates the attributes _even_minus_odd and _even_plus_odd of the class
         by looping over the frames from the 2 cameras and the 2 phases (0 and pi), 
@@ -335,12 +335,24 @@ class ZimpolScienceCube(ZimpolMasterFile):
             for iphase,phase in enumerate(['0','pi']):
                 
                 if self._masterBias!= None and self._biasOnlyI:
+#            phase0Even = np.roll(phase0Even,dither[1],axis=1) # y axis (INS3 POS4 POS/2 for cam1 and INS3 POS7 POS/2 for cam2)
+#            phase0Even = np.roll(phase0Even,dither[0],axis=2) # x axis (INS3 POS3 POS for cam1 and INS3 POS6 POS for cam2)
+#            phase0Odd = np.roll(phase0Odd,dither[1],axis=1) # y axis (INS3 POS4 POS/2 for cam1 and INS3 POS7 POS/2 for cam2)
+#            phase0Odd = np.roll(phase0Odd,dither[0],axis=2) # x axis (INS3 POS3 POS for cam1 and INS3 POS6 POS for cam2)
+#            phasePiEven = np.roll(phasePiEven,dither[1],axis=1) # y axis (INS3 POS4 POS/2 for cam1 and INS3 POS7 POS/2 for cam2)
+#            phasePiEven = np.roll(phasePiEven,dither[0],axis=2) # x axis (INS3 POS3 POS for cam1 and INS3 POS6 POS for cam2)
+#            phasePiOdd = np.roll(phasePiOdd,dither[1],axis=1) # y axis (INS3 POS4 POS/2 for cam1 and INS3 POS7 POS/2 for cam2)
+#            phasePiOdd = np.roll(phasePiOdd,dither[0],axis=2) # x axis (INS3 POS3 POS for cam1 and INS3 POS6 POS for cam2)                    
                     if icam==0:
                         bias_even = self._masterBias._masterFrame_cam1[phase+'_even']
                         bias_odd  = self._masterBias._masterFrame_cam1[phase+'_odd']
                     else:
                         bias_even = self._masterBias._masterFrame_cam2[phase+'_even']
                         bias_odd  = self._masterBias._masterFrame_cam2[phase+'_odd']
+                    bias_even = np.roll(bias_even,self.dither[cam][1],axis=0)
+                    bias_even = np.roll(bias_even,self.dither[cam][0],axis=1)
+                    bias_odd = np.roll(bias_odd,self.dither[cam][1],axis=0)
+                    bias_odd = np.roll(bias_odd,self.dither[cam][0],axis=1)
                 
                 even_minus_odd_cube = self._frames[cam][phase+'_even'] - self._frames[cam][phase+'_odd']
                 even_plus_odd_cube  = (self._frames[cam][phase+'_even']-bias_even) + (self._frames[cam][phase+'_odd'] - bias_odd) 
@@ -392,11 +404,15 @@ class ZimpolScienceCube(ZimpolMasterFile):
 
                 even_minus_odd_cube_centered = self._shift(even_minus_odd_cube,-dx_array,-dy_array,verbose=True)
                 even_plus_odd_cube_centered = self._shift(even_plus_odd_cube,-dx_array,-dy_array,verbose=True)
-
+                if rowMedianSubtraction:
+                        even_minus_odd_cube_centered = imtools.subtract_median(even_minus_odd_cube_centered,row=True,column=False)
+                        even_plus_odd_cube_centered  = imtools.subtract_median(even_plus_odd_cube_centered,row=True,column=False)
+                if columnMedianSubtraction:
+                    even_minus_odd_cube_centered = imtools.subtract_median(even_minus_odd_cube_centered,row=False,column=True)
+                    even_plus_odd_cube_centered  = imtools.subtract_median(even_plus_odd_cube_centered,row=False,column=True)                    
                 if np.any(~np.isfinite(even_minus_odd_cube_centered)):
                     print('problem with nan during recentering')
-                    raise ValueError('Problem with nan during recentering')
-
+                    raise ValueError('Problem with nan during recentering')                    
                 if save:
                     HDU_even_minus_odd = fits.PrimaryHDU(even_minus_odd_cube_centered,header=self._header)
                     HDU_even_minus_odd.writeto(os.path.join(self._pathReduc,self._name+'_cube_{0:s}_even_minus_odd_cam{1:d}_recentered.fits'.format(phase,cam)),clobber=True,output_verify='ignore')
