@@ -37,8 +37,8 @@ from astropy.time import Time
 from astropy.coordinates import ICRS, Galactic, FK4, FK5,EarthLocation
 #from astropy.stats import sigma_clip
 #import matplotlib.pyplot as plt
-#import vip_hci as vip
-import vip
+import vip_hci as vip
+#import vip
 from fit_2d_utilities import cube_recenter_gauss2d_fit
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
@@ -695,8 +695,8 @@ class IrdisDataHandler(DataHandler):
                 centerx = int(centerxy[0])
                 centery = int(centerxy[1])            
             if rebin==1:  #no rebin              
-                original_ll_x = np.max([0,centerx-size/2])
-                original_ll_y = np.max([0,centery-size/2])
+                original_ll_x = np.max([0,centerx-size//2])
+                original_ll_y = np.max([0,centery-size//2])
                 if np.mod(size,2) == 0:
                     original_ur_x = np.min([self._columnNb,centerx+size//2])
                     original_ur_y = np.min([self._rowNb,centery+size//2])
@@ -751,7 +751,9 @@ class IrdisDataHandler(DataHandler):
 #                    print('We start reading from {0:d} to {1:d} or {2:d}px'.format(start_r,end_r,end_r-start_r))
                     cube[counter+k,:,:] = rebin2d(tmp[start_r:end_r,start_r:end_r],(size_rebin,size_rebin))
             counter = counter + ndit
-        derotation_angles = parang+self.true_north+self.pupil_offset
+        derotation_angles = parang+self.true_north+self.pupil_offset # + self.true_north is the correct sign !! (tested on 2018-05-11)                                                                                                    
+        print('We used the convention derotation_angles = parang+self.true_north+self.pupil_offset')
+
         fits.writeto(os.path.join(self._pathReduc,cube_name),cube,header=self.firstHeader,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_parang_'+frameType+'.fits'),parang,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_derotation_angles_'+frameType+'.fits'),derotation_angles,clobber=True,output_verify='ignore')
