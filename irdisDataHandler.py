@@ -664,9 +664,9 @@ class IrdisDataHandler(DataHandler):
                 print('The rebin option is not available for a size different than {0:d}'.format(self._rowNb))
                 size = self._rowNb
             if np.mod(rebin,2)==0:
-                size_rebin = np.divide(size-rebin,rebin)
+                size_rebin = np.floor_divide(size-rebin,rebin)
             else:                
-                size_rebin = np.divide(size,rebin)
+                size_rebin = np.floor_divide(size,rebin)
             print("Spatial rebin by a factor {0:d}. The new images will be {1:d}x{1:d}px".format(rebin,size_rebin))
             cube = np.ndarray([totalFrames,size_rebin,size_rebin])            
             cube_name = self._name+'_{0:03d}x{0:03d}_rebinned_{1:03d}x{1:03d}_'.format(size,size_rebin)+camera+'_'+frameType+'.fits'

@@ -14,6 +14,7 @@ import scipy
 #from scipy import stats
 #from scipy import signal
 from astropy.io import fits
+from image_tools import distance_array, shift_image,shift_image_nofft
 
 import matplotlib.pyplot as plt
 import radial_data as rd
@@ -484,13 +485,13 @@ if __name__ == "__main__":
     irdis_frequency_sampling = 1/pixel_irdis
     
     
-    wl = 1588.8e-9
-    pixel_nyquist = 0.5*wl/D*180/np.pi*3600. # Nyquist sampling [arcsec/px]
-    oversample = pixel_nyquist/pixel_irdis # oversampling factor
-    psf = fits.getdata('/Users/jmilli/Documents/SPHERE/psf_star_mag4-6-8/2018-01-27/pipeline/psf_left_cropped.fits')
-    calc_strehl(psf, oversample=oversample, oc=central_obscuration, FIT=True,\
-            SUBSTRACT_NOISE=True,VISU=True, VERBOSE=True,ABS=True, PUPIL=True, \
-            APO='APO1',LYOT='ALC2', path_lib=path_lib)
+#    wl = 1588.8e-9
+#    pixel_nyquist = 0.5*wl/D*180/np.pi*3600. # Nyquist sampling [arcsec/px]
+#    oversample = pixel_nyquist/pixel_irdis # oversampling factor
+#    psf = fits.getdata('/Users/jmilli/Documents/SPHERE/psf_star_mag4-6-8/2018-01-27/pipeline/psf_left_cropped.fits')
+#    calc_strehl(psf, oversample=oversample, oc=central_obscuration, FIT=True,\
+#            SUBSTRACT_NOISE=True,VISU=True, VERBOSE=True,ABS=True, PUPIL=True, \
+#            APO='APO1',LYOT='ALC2', path_lib=path_lib)
     
      
     wl = 1.625e-6 # H band
@@ -502,6 +503,18 @@ if __name__ == "__main__":
     print('Oversampling {0:.3f}   (Nyquist sampling/Irdis sampling)'.format(oversample)) # 1.68379 at H band.
     
     
+#    psf = fits.getdata('/Users/jmilli/Documents/SPHERE/psf_faint_star/2MASS-J18521730-3700119_Marion/psf_2MASS-J18521730-3700119.fits')
+#    distarr = distance_array(psf.shape)
+#    sky_mask= np.logical_and(distarr>=70,distarr<=90)
+#    sky_level=np.median(psf[sky_mask])
+#    print(sky_level)    
+#    halfsize=41
+#    psf = psf[512-halfsize:512+halfsize,512-halfsize:512+halfsize]-sky_level
+#    calc_strehl(psf, oversample=oversample, oc=central_obscuration, FIT=True,\
+#                SUBSTRACT_NOISE=True,VISU=True, VERBOSE=True,ABS=True, PUPIL=True, \
+#                APO='APO1',LYOT='ALC2', path_lib=path_lib)
+
+
     strehls=[]
     i=0
     for psf1 in cube_psf:
