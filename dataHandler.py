@@ -59,7 +59,7 @@ class DataHandler(object):
         nbFiles = self.getNumberFiles()
         print('There are {0:3d} raw files'.format(nbFiles))
 
-    def writeMetaData(self,fileName='keyword_list.csv'):
+    def writeMetaData(self):
         """
         Function that writes an ascii file in pathReduc with the value of 
         each keyword  
@@ -68,9 +68,10 @@ class DataHandler(object):
         Output:
             None
         """
+        filename = self._name+'_keyword_list.csv'
         ascii.write([self._keywords[key] for key in self._keywords.keys()],
-                         os.path.join(self._pathReduc,fileName),names=self._keywords.keys(),format='csv')
-        print('Wrote the file {0:s}'.format(os.path.join(self._pathReduc,fileName)))
+                         os.path.join(self._pathReduc,filename),names=self._keywords.keys(),format='csv')
+        print('Wrote the file {0:s}'.format(os.path.join(self._pathReduc,filename)))
             
     def loadFiles(self,dir,inputFiles,verbose=False):
         """

@@ -751,9 +751,10 @@ class IrdisDataHandler(DataHandler):
 #                    print('We start reading from {0:d} to {1:d} or {2:d}px'.format(start_r,end_r,end_r-start_r))
                     cube[counter+k,:,:] = rebin2d(tmp[start_r:end_r,start_r:end_r],(size_rebin,size_rebin))
             counter = counter + ndit
-        derotation_angles = parang+self.true_north+self.pupil_offset # + self.true_north is the correct sign !! (tested on 2018-05-11)                                                                                                    
+        parang = np.rad2deg(np.unwrap(np.deg2rad(parang)))
+        derotation_angles = np.rad2deg(np.unwrap(np.deg2rad(\
+                    np.mod(parang+self.true_north+self.pupil_offset,360)))) # + self.true_north is the correct sign !! (tested on 2018-05-11)                                                                                                    
         print('We used the convention derotation_angles = parang+self.true_north+self.pupil_offset')
-
         fits.writeto(os.path.join(self._pathReduc,cube_name),cube,header=self.firstHeader,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_parang_'+frameType+'.fits'),parang,clobber=True,output_verify='ignore')
         fits.writeto(os.path.join(self._pathReduc,self._name+'_derotation_angles_'+frameType+'.fits'),derotation_angles,clobber=True,output_verify='ignore')
