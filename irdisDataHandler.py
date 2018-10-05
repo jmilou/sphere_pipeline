@@ -482,7 +482,8 @@ class IrdisDataHandler(DataHandler):
             elif camera=='right':
                 fwhm = self.theoretical_fwhm[1]
         dist_center = distance_array([size,size],verbose=False)
-        cube_psf,_,_ = self.write_master_cube(camera=camera,centerxy=[self._rowNb/2,self._columnNb/2],\
+        cube_psf,_,_ = self.write_master_cube(camera=camera,centerxy=[self._rowNb//2,\
+                                                                      self._columnNb//2],\
                      size=size,frameType='F',output=True)
         if len(cube_psf.shape)==3:     
             median_psf = np.median(cube_psf,axis=0)
@@ -490,7 +491,7 @@ class IrdisDataHandler(DataHandler):
         else:
             median_psf = cube_psf
 #            nframes_psf = 1            
-        posmax = np.argmax(median_psf * (dist_center<self._rowNb/4))
+        posmax = np.argmax(median_psf * (dist_center<self._rowNb//4))
         posy,posx = np.unravel_index(posmax,median_psf.shape)
 #        vip/preproc/recentering.cube_recenter_gauss2d_fit(array, xy, fwhm=4, subi_size=5, nproc=1,
         recentered_cube = cube_recenter_gauss2d_fit(cube_psf,\
@@ -547,6 +548,9 @@ class IrdisDataHandler(DataHandler):
             print('Scaling factor (left) = {0:6.1f} = {1:6.1f} (DIT) x {2:6.1f} (ND)'.format(\
                 dit_list_object[0]/dit_list_flux[0]*transmission_object[0]/transmission_flux[0],\
                 dit_list_object[0]/dit_list_flux[0],transmission_object[0]/transmission_flux[0]))
+            print('Scaling factor (right) = {0:6.1f} = {1:6.1f} (DIT) x {2:6.1f} (ND)'.format(\
+                dit_list_object[0]/dit_list_flux[0]*transmission_object[1]/transmission_flux[1],\
+                dit_list_object[0]/dit_list_flux[0],transmission_object[1]/transmission_flux[1]))
         scaling_factor = dit_list_object[0]/dit_list_flux[0]*transmission_object/transmission_flux
         return scaling_factor
 
@@ -615,7 +619,7 @@ class IrdisDataHandler(DataHandler):
         return reg_string
                
     def write_master_cube(self,camera='left',centerxy=None,size=None,frameType='all',
-                          output=False,dithering=True,rebin=1,clean=0):
+                          output=False,dithering=True,rebin=1,clean=0,filterColumn=False):
         """
         Reads the fits files processed by the pipeline and recenters it optionally.
         Create a master cube.
@@ -688,6 +692,18 @@ class IrdisDataHandler(DataHandler):
             cube_pipeline = fits.getdata(pipelineName)
             if clean>0:
                 cube_pipeline = correctBadPixelInCube(cube_pipeline,threshold=clean,verbose=False)
+            if filterColumn:
+                distarray = distance_array((self._columnNb,self._rowNb),\
+                                           centerx=centerxy[0],centery=centerxy[1],\
+                                           verbose=False)
+                valuesToDiscard = distarray<200
+                for frame_index in range(cube_pipeline.shape[0]):
+                    tmp = np.copy(cube_pipeline[frame_index,:,:])
+                    tmp[valuesToDiscard]=np.nan
+                    cube_pipeline[frame_index,0:self._columnNb//2+1,:] = \
+                        cube_pipeline[frame_index,0:self._columnNb//2+1,:] - np.nanmedian(tmp[self._columnNb//2+1:,:],axis=0)
+                    cube_pipeline[frame_index,self._columnNb//2+1:,:] = \
+                        cube_pipeline[frame_index,self._columnNb//2+1:,:] - np.nanmedian(tmp[self._columnNb//2+1:,:],axis=0)
             if dithering:
                 centerx = int(centerxy[0]+self._keywords['HIERARCH ESO INS1 DITH POSX'][idFrames[i]])
                 centery = int(centerxy[1]+self._keywords['HIERARCH ESO INS1 DITH POSY'][idFrames[i]])            

@@ -194,10 +194,10 @@ def waffle_spot_positions(centerxy,filter_name='B_H',waffle_pattern='x'):
         radius = 35.
     elif filter_name == 'B_H' or filter_name == 'B_ND-H':
         radius = 47.
-    elif filter_name == 'B_Ks':
+    elif filter_name == 'B_Ks' or filter_name == 'D_K12':
         radius = 67.
     else:    
-        print('Filter choice not understood')
+        print('Filter choice not understood:',filter_name)
     waffle_ur_pos = [int(np.fix(centerxy[0]+radius*np.cos(spot_pa[0]))),\
                      int(np.fix(centerxy[1]+radius*np.sin(spot_pa[0])))]
     waffle_ul_pos = [int(np.fix(centerxy[0]+radius*np.cos(spot_pa[1]))),\
@@ -559,7 +559,7 @@ def spider_aperture_photometry(cube,rin,rout,width=4,full_output=False):
             aper_phot[k,i] = aperture_photometry(cube[k,:,:],aper)['aperture_sum'][0]
             aper_phot_sky[k,i] = aperture_photometry(cube[k,:,:],aper_sky)['aperture_sum'][0]
     if full_output:
-        return aper_phot - np.mean(aper_phot_sky,axis=1)
+        return aper_phot - aper_phot_sky
     else:
         return np.mean(aper_phot,axis=1) - np.mean(aper_phot_sky,axis=1)
     
