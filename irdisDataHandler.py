@@ -658,6 +658,10 @@ class IrdisDataHandler(DataHandler):
             size = self._rowNb
         if len(centerxy) != 2:
             raise TypeError('The center must be a list of 2 integers. Got {0}'.format(centerxy))
+        if filterColumn:
+            mask_size=200
+            print('You decided to remove the median of each half-column of the detector',\
+                  ' using a mask of {0:d}px centered on the star'.format(mask_size))
         idFrames = self._get_id_frames(frameType)
         totalFrames = self.getTotalNumberFrames(frameType=frameType)
         if rebin==1:
@@ -696,14 +700,14 @@ class IrdisDataHandler(DataHandler):
                 distarray = distance_array((self._columnNb,self._rowNb),\
                                            centerx=centerxy[0],centery=centerxy[1],\
                                            verbose=False)
-                valuesToDiscard = distarray<200
+                valuesToDiscard = distarray<=mask_size
                 for frame_index in range(cube_pipeline.shape[0]):
                     tmp = np.copy(cube_pipeline[frame_index,:,:])
                     tmp[valuesToDiscard]=np.nan
                     cube_pipeline[frame_index,0:self._columnNb//2+1,:] = \
-                        cube_pipeline[frame_index,0:self._columnNb//2+1,:] - np.nanmedian(tmp[self._columnNb//2+1:,:],axis=0)
+                        cube_pipeline[frame_index,0:self._columnNb//2+1,:] - np.nanmedian(tmp[self._columnNb//2+1:,:],axis=0, keepdims=True)
                     cube_pipeline[frame_index,self._columnNb//2+1:,:] = \
-                        cube_pipeline[frame_index,self._columnNb//2+1:,:] - np.nanmedian(tmp[self._columnNb//2+1:,:],axis=0)
+                        cube_pipeline[frame_index,self._columnNb//2+1:,:] - np.nanmedian(tmp[self._columnNb//2+1:,:],axis=0, keepdims=True)
             if dithering:
                 centerx = int(centerxy[0]+self._keywords['HIERARCH ESO INS1 DITH POSX'][idFrames[i]])
                 centery = int(centerxy[1]+self._keywords['HIERARCH ESO INS1 DITH POSY'][idFrames[i]])            
