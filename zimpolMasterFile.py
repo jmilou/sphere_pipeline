@@ -76,7 +76,7 @@ class ZimpolMasterFile(ZimpolDataHandler):
     """
     
     def __init__(self,pathRaw,pathReduc,fileNames,badPixelMap=None,\
-        name='zimpol_file',subtractDark=False):
+        name='zimpol_file',subtractDark=False,badframes=None):
         """
         Constructor of the ZimpolMasterFile object. It instantiates the master frame
         with nan values. It takes the same input 

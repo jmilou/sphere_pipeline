@@ -85,6 +85,8 @@ class DataHandler(object):
             for inputFile in inputFiles:
                 if os.path.isfile(os.path.join(self._pathRaw,inputFile)):
                     self._fileNames.append(inputFile)
+                else:
+                    print('{0:s} not recognized as a file'.format(os.path.join(self._pathRaw,inputFile)))
         elif type(inputFiles) == str or type(inputFiles) == np.string_:
             for fileName in sorted(glob.glob(os.path.join(self._pathRaw,inputFiles))):
                 if fileName.endswith('.fits'):

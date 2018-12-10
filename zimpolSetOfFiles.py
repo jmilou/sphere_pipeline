@@ -75,13 +75,14 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         """
         Constructor of the ZimpolSetOfFiles object. 
         Input:
-            - pathRoot: the absolute path where the reduction is performed
-            - pathRaw: the relative path (from pathRoot) where the raw files are stored
-            - pathReduc: the relative path (from pathRoot) where the reduced files
+            - pathRaw: the absolute path where the raw files are stored
+            - pathReduc: the absolute path where the reduced files
                          are stored
             - fileNames: the list of filenames. It can be either a string 
                         with the general start of the file names, e.g. 'SPHERE_ZIMPOL_', 
                         or a list of complete filenames
+            - beamshift: says whether a beamshift correction is applied or not to
+                        remove the shift between the even and odd frames.
             - badPixelMap: a map of bad pixel (bad=1, good=0) (optional) 
             - rowMedianSubtraction: if True, removes the median in each row on a n
                                     individual frame level to remove an electronic signature
@@ -89,6 +90,10 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
             - columnMedianSubtraction: if True, removes the median in each column on a n
                                     individual frame level to remove an electronic signature
                                     that can create a noise pattern (vertical lines)
+            - ftt: whether frame shifting is done with FFT or not
+            - biasOnly
+            - badPixel
+            - center: 
         """
         ZimpolDataHandler.__init__(self,pathRaw,pathReduc,fileNames,name)
         self._scienceFilesIndices = self._get_id_from_dpr_catg('SCIENCE')
@@ -105,7 +110,8 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         for keyword in self._setup_keywords :
             setup = set(self.getKeywords()[keyword][i] for i in self._scienceFilesIndices)
             if len(setup) != 1:
-                raise TypeError('The keyword {0:s} must be identical for all science files'.format(keyword))
+                print('Warning the keyword {0:s} is not identical for all science files'.format(keyword))
+#                raise TypeError('The keyword {0:s} must be identical for all science files'.format(keyword))
             print('{0:s}: {1:s}'.format(keyword,str(setup.pop())))
         self._nbPolarCycles,self._nbFramesPerHWPPos = self._get_nb_polar_cycles()
         print('Number of polarimetric cycles: {0:d}'.format(self._nbPolarCycles))
@@ -149,7 +155,7 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         if np.mod(len(hwp_posang),4*nb_frames_per_hwp_pos) != 0:
             raise TypeError('The number of science files should be a multiple of {0:d} but is {1:d} '.format(\
                             4*nb_frames_per_hwp_pos,len(hwp_posang)))
-        nb_cycles = len(hwp_posang)/(4*nb_frames_per_hwp_pos)
+        nb_cycles = len(hwp_posang)//(4*nb_frames_per_hwp_pos)
         return nb_cycles,nb_frames_per_hwp_pos
 
     def _get_id_polar_cycle(self,polarCycleId):
@@ -216,19 +222,19 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
                                               columnMedianSubtraction=self.columnMedianSubtraction)
         
         for icam,cam in enumerate(plusQCube.getCameras()):
-            fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_I_cam{1:d}.fits'.format(polarCycleId,cam)),polarimetricCycle._I[icam],plusQCube._header,clobber=True,output_verify='ignore')
-            fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_Q_cam{1:d}.fits'.format(polarCycleId,cam)),polarimetricCycle._Q[icam],plusQCube._header,clobber=True,output_verify='ignore')
-            fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_U_cam{1:d}.fits'.format(polarCycleId,cam)),polarimetricCycle._U[icam],plusUCube._header,clobber=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_I_cam{1:d}.fits'.format(polarCycleId,cam)),polarimetricCycle._I[icam],plusQCube._header,overwrite=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_Q_cam{1:d}.fits'.format(polarCycleId,cam)),polarimetricCycle._Q[icam],plusQCube._header,overwrite=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_U_cam{1:d}.fits'.format(polarCycleId,cam)),polarimetricCycle._U[icam],plusUCube._header,overwrite=True,output_verify='ignore')
 
 #            
-#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_I_cam1.fits'.format(polarCycleId)),polarimetricCycle._I_cam1,plusQCube._header,clobber=True,output_verify='ignore')
-#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_I_cam2.fits'.format(polarCycleId)),polarimetricCycle._I_cam2,plusQCube._header,clobber=True,output_verify='ignore')
+#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_I_cam1.fits'.format(polarCycleId)),polarimetricCycle._I_cam1,plusQCube._header,overwrite=True,output_verify='ignore')
+#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_I_cam2.fits'.format(polarCycleId)),polarimetricCycle._I_cam2,plusQCube._header,overwrite=True,output_verify='ignore')
 #
-#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_Q_cam1.fits'.format(polarCycleId)),polarimetricCycle._Q_cam1,plusQCube._header,clobber=True,output_verify='ignore')
-#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_Q_cam2.fits'.format(polarCycleId)),polarimetricCycle._Q_cam2,plusQCube._header,clobber=True,output_verify='ignore')
+#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_Q_cam1.fits'.format(polarCycleId)),polarimetricCycle._Q_cam1,plusQCube._header,overwrite=True,output_verify='ignore')
+#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_Q_cam2.fits'.format(polarCycleId)),polarimetricCycle._Q_cam2,plusQCube._header,overwrite=True,output_verify='ignore')
 #
-#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_U_cam1.fits'.format(polarCycleId)),polarimetricCycle._U_cam1,plusUCube._header,clobber=True,output_verify='ignore')
-#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_U_cam2.fits'.format(polarCycleId)),polarimetricCycle._U_cam2,plusUCube._header,clobber=True,output_verify='ignore')
+#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_U_cam1.fits'.format(polarCycleId)),polarimetricCycle._U_cam1,plusUCube._header,overwrite=True,output_verify='ignore')
+#        fits.writeto(os.path.join(self._pathReduc,'cycle{0:02d}_U_cam2.fits'.format(polarCycleId)),polarimetricCycle._U_cam2,plusUCube._header,overwrite=True,output_verify='ignore')
 #
         return polarimetricCycle
 
@@ -302,9 +308,9 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
             self._U.append(-np.flipud(f(cube_U[0],axis=0))) # cam 1
             self._U.append(np.flipud(np.fliplr(f(cube_U[1],axis=0))))# for cam 2
             for icam,cam in enumerate(self.getCameras()):
-                fits.writeto(os.path.join(self._pathReduc,'I_cam{0:d}.fits'.format(cam)),self._I[icam],listPolarCycles[0]._plusQ._header,clobber=True,output_verify='ignore')
-                fits.writeto(os.path.join(self._pathReduc,'Q_cam{0:d}.fits'.format(cam)),self._Q[icam],listPolarCycles[0]._plusQ._header,clobber=True,output_verify='ignore')
-                fits.writeto(os.path.join(self._pathReduc,'U_cam{0:d}.fits'.format(cam)),self._U[icam],listPolarCycles[0]._plusU._header,clobber=True,output_verify='ignore')
+                fits.writeto(os.path.join(self._pathReduc,'I_cam{0:d}.fits'.format(cam)),self._I[icam],listPolarCycles[0]._plusQ._header,overwrite=True,output_verify='ignore')
+                fits.writeto(os.path.join(self._pathReduc,'Q_cam{0:d}.fits'.format(cam)),self._Q[icam],listPolarCycles[0]._plusQ._header,overwrite=True,output_verify='ignore')
+                fits.writeto(os.path.join(self._pathReduc,'U_cam{0:d}.fits'.format(cam)),self._U[icam],listPolarCycles[0]._plusU._header,overwrite=True,output_verify='ignore')
             return listPolarCycles
         else:
             for icam,cam in enumerate(self.getCameras()):
@@ -324,18 +330,18 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         position_angle = self.getKeywords()['HIERARCH ESO INS4 DROT2 POSANG'][0]
         print('Rebinning the pixels by a factor 2 horizontally and rotating by {0:.0f}deg to alight the north up'.format(position_angle))
         for icam,cam in enumerate(self.getCameras()):
-            I_rebinned = rebin2d(self._I[icam],(self._columnNb/2,self._rowNb))
-            Q_rebinned = rebin2d(self._Q[icam],(self._columnNb/2,self._rowNb))
-            U_rebinned = rebin2d(self._U[icam],(self._columnNb/2,self._rowNb))
+            I_rebinned = rebin2d(self._I[icam],(self._columnNb//2,self._rowNb))
+            Q_rebinned = rebin2d(self._Q[icam],(self._columnNb//2,self._rowNb))
+            U_rebinned = rebin2d(self._U[icam],(self._columnNb//2,self._rowNb))
             I_rebinned = frame_rotate(I_rebinned, -position_angle)
             Q_rebinned = frame_rotate(Q_rebinned, -position_angle)
             U_rebinned = frame_rotate(U_rebinned, -position_angle)
             self._I_rebinned.append(I_rebinned)
             self._Q_rebinned.append(Q_rebinned)
             self._U_rebinned.append(U_rebinned)
-            fits.writeto(os.path.join(self._pathReduc,'I_cam{0:d}_rebinned.fits'.format(cam)),self._I_rebinned[icam],clobber=True,output_verify='ignore')
-            fits.writeto(os.path.join(self._pathReduc,'Q_cam{0:d}_rebinned.fits'.format(cam)),self._Q_rebinned[icam],clobber=True,output_verify='ignore')
-            fits.writeto(os.path.join(self._pathReduc,'U_cam{0:d}_rebinned.fits'.format(cam)),self._U_rebinned[icam],clobber=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'I_cam{0:d}_rebinned.fits'.format(cam)),self._I_rebinned[icam],overwrite=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'Q_cam{0:d}_rebinned.fits'.format(cam)),self._Q_rebinned[icam],overwrite=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'U_cam{0:d}_rebinned.fits'.format(cam)),self._U_rebinned[icam],overwrite=True,output_verify='ignore')
 
 
     def correctInstrumentalPolarisation(self,mask=None,path_nosat=None,method='RMS'):
@@ -447,8 +453,8 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
             print('The RMS in the mask for U cam{0:d} went from {1:4.2e} to {2:4.2e} after IP correction ({3:.1f}% change)'.format(cam,\
               std_U_wo_IP,std_U_w_IP,(std_U_w_IP-std_U_wo_IP)/std_U_wo_IP*100.))
             
-            fits.writeto(os.path.join(self._pathReduc,'Q_cam{0:d}_IPcorrected.fits'.format(cam)),self._Q_corrected[icam],clobber=True,output_verify='ignore')
-            fits.writeto(os.path.join(self._pathReduc,'U_cam{0:d}_IPcorrected.fits'.format(cam)),self._U_corrected[icam],clobber=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'Q_cam{0:d}_IPcorrected.fits'.format(cam)),self._Q_corrected[icam],overwrite=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'U_cam{0:d}_IPcorrected.fits'.format(cam)),self._U_corrected[icam],overwrite=True,output_verify='ignore')
             print('The median background in Q cam{0:d} went from {1:4.2e} to {2:4.2e} after IP correction'.format(cam,\
               bkg_med_Q_wo_IP[icam],bkg_med_Q_w_IP[icam]))
             print('The median background in U cam{0:d} went from {1:4.2e} to {2:4.2e} after IP correction'.format(cam,\
@@ -468,7 +474,7 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         self._pI = []
         self._Q_phi = []
         self._U_phi = []
-        theta = angle_array((self._columnNb/2,self._rowNb))
+        theta = angle_array((self._columnNb//2,self._rowNb))
         cos2theta = np.cos(2*theta)
         sin2theta = np.sin(2*theta)
         for icam,cam in enumerate(self.getCameras()):
@@ -481,13 +487,13 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
                 U = self._U_rebinned[icam]
             pI = np.sqrt(Q**2+U**2)            
             self._pI.append(pI)
-            fits.writeto(os.path.join(self._pathReduc,'pI_cam{0:d}.fits'.format(cam)),self._pI[icam],clobber=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'pI_cam{0:d}.fits'.format(cam)),self._pI[icam],overwrite=True,output_verify='ignore')
             Q_phi = Q*cos2theta+U*sin2theta
             U_phi = -Q*sin2theta+U*cos2theta
             self._Q_phi.append(Q_phi)
-            fits.writeto(os.path.join(self._pathReduc,'Qphi_cam{0:d}.fits'.format(cam)),self._Q_phi[icam],clobber=True,output_verify='ignore')
+            fits.writeto(os.path.join(self._pathReduc,'Qphi_cam{0:d}.fits'.format(cam)),self._Q_phi[icam],overwrite=True,output_verify='ignore')
             self._U_phi.append(U_phi)
-            fits.writeto(os.path.join(self._pathReduc,'Uphi_cam{0:d}.fits'.format(cam)),self._U_phi[icam],clobber=True,output_verify='ignore')            
+            fits.writeto(os.path.join(self._pathReduc,'Uphi_cam{0:d}.fits'.format(cam)),self._U_phi[icam],overwrite=True,output_verify='ignore')            
 
     def test_HWP_correction(self):
         """
@@ -500,7 +506,7 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         theta_max=90
         theta0 = np.arange(theta_min,theta_max,1.)
         nb_theta = len(theta0)
-        ny,nx = (self._columnNb/2,self._rowNb)
+        ny,nx = (self._columnNb//2,self._rowNb)
         theta = angle_array((ny,nx))
         distarr = distance_array((ny,nx))
         mask_polar = distarr<12
@@ -556,11 +562,14 @@ if __name__=='__main__':
 #    fileNames='SPHER'    
 
     import pdb
-    pathRawScience_posang000=os.path.join(pathRawScience,'FastPolarimetry_000')
-    pathReducScience_posang000=os.path.join(pathReducScience,'FastPolarimetry_000_reduced_beamshifted')
+    pathRawScience_posang000=os.path.join(pathRawScience,\
+                                          'FastPolarimetry_000')
+    pathReducScience_posang000=os.path.join(pathReducScience,\
+                    'test')
     fileNames='SPHER.2016-05-25T01:3[4-6]*'    
     zimpolSetOfFiles_posang000 = ZimpolSetOfFiles(pathRawScience_posang000,\
-        pathReducScience_posang000,fileNames,recenter='gaussianFit',beamShift=True)
+        pathReducScience_posang000,fileNames,recenter='gaussianFit',\
+        beamShift=True)
 #    zimpolSetOfFiles_posang000.reduce_one_polar_cycle(0)
 #    zimpolSetOfFiles_posang000.reduce_one_polar_cycle(1)
     zimpolSetOfFiles_posang000.combinePolarimetricCycles()
@@ -568,7 +577,7 @@ if __name__=='__main__':
     zimpolSetOfFiles_posang000.correctInstrumentalPolarisation()
     zimpolSetOfFiles_posang000.compute_pI_polarStokes()
 
-#    fits.writeto(os.path.join(zimpolSetOfFiles_posang000._pathReduc,'Q.fits'),zimpolSetOfFiles_posang000._Q_cam1+zimpolSetOfFiles_posang000._Q_cam2,clobber=True)
-#    fits.writeto(os.path.join(zimpolSetOfFiles_posang000._pathReduc,'U.fits'),zimpolSetOfFiles_posang000._U_cam1+zimpolSetOfFiles_posang000._U_cam2,clobber=True)
+#    fits.writeto(os.path.join(zimpolSetOfFiles_posang000._pathReduc,'Q.fits'),zimpolSetOfFiles_posang000._Q_cam1+zimpolSetOfFiles_posang000._Q_cam2,overwrite=True)
+#    fits.writeto(os.path.join(zimpolSetOfFiles_posang000._pathReduc,'U.fits'),zimpolSetOfFiles_posang000._U_cam1+zimpolSetOfFiles_posang000._U_cam2,overwrite =True)
 
 #    zimpolSetOfFiles_posang000.reduce_one_polar_cycle(1)

@@ -72,7 +72,7 @@ class PolarimetricCycle():
         std_beamshift = np.ndarray((4,2,2,2))
         #(3 dimensions: camera,phase,and direction)
         for i,scienceCube in enumerate([self._plusQ,self._minusQ,self._plusU,self._minusU]):
-            print('Beam shift statistics for {0:s}'.format(description))
+            print('Beam shift statistics for {0:s}'.format(' '.join(description)))
             mean_beamshift_Stokes,std_beamshift_Stokes = scienceCube._print_beam_shift_statistics()
             mean_beamshift[i,:,:,:] = mean_beamshift_Stokes
             std_beamshift[i,:,:,:] = std_beamshift_Stokes

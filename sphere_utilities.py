@@ -567,6 +567,11 @@ if __name__ == "__main__":
     tr = sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=1.)
     print(tr)
     theoretical_sphere_fwhm(filter_name='YJ')
+
+
+    tr = zimpol_transmission(NDset=1.,filt='VBB')
+    print(tr)
+
 #    ap = spider_aperture_photometry(cube_rebin,60,80,width=8,full_output=True)
 #    plt.plot(ap,color='blue')
 ##    plt.plot(ap[:,1],color='red')

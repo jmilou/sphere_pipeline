@@ -119,7 +119,7 @@ class ZimpolScienceCube(ZimpolMasterFile):
         self._even_plus_odd = None
         self._mean_beamshift = np.zeros((2,2,2)) #the different dimensions are cam phase X/Y
         self._std_beamshift = np.zeros((2,2,2)) #the different dimensions are cam phase X/Y
-        if guess_xycenter == None:
+        if np.any(guess_xycenter) == None:
             self._guess_xy = np.asarray([[self._columnNb//2,self._rowNb//2],[self._columnNb//2,self._rowNb//2]])
         else:
             self._guess_xy = guess_xycenter
@@ -172,7 +172,8 @@ class ZimpolScienceCube(ZimpolMasterFile):
         """
         Recenter the frames (before collapsing them)
         Input:
-            - method: 'default', 'gaussianFit' or 'correlation'
+            - method: 'default', 'gaussianFit' or the name of a folder 
+                containing the beamshift_correction_cam[1-2].csv
          """
         self._centerx = []
         self._centery = []
@@ -214,27 +215,37 @@ class ZimpolScienceCube(ZimpolMasterFile):
 
                         dico_center_x[frameType][frame] = fit_result['X']
                         dico_center_y[frameType][frame] = fit_result['Y']
-            elif method=='correlation':
-                print('Recentering method not implemented yet')
+            elif method=='saturated':
+                dico = self._frames[cam]
+                for frameType in self._frameTypes:
+                    dico_center_x[frameType] = np.zeros(nb_frames)+self._columnNb//2
+                    dico_center_y[frameType] = np.zeros(nb_frames)+self._rowNb//2     
+                    for frame in range(nb_frames):
+                        img = dico[frameType][frame,:,:]
+                        x_center_1d_array = np.arange(0,img.shape[1])
+                        y_center_1d_array= np.arange(0,img.shape[0])
+                        xx_array,yy_array=np.meshgrid(x_center_1d_array,y_center_1d_array)
+                        mask_saturated = img>55000
+                        for y in range(img.shape[0]):
+                            if np.any(mask_saturated[y,:]):
+                                minx = np.min(x_center_1d_array[mask_saturated[y,:]])
+                                maxx = np.max(x_center_1d_array[mask_saturated[y,:]])                                
+                                mask_saturated[y,minx:maxx+1] = True
+                        center_x = np.mean(xx_array[mask_saturated])
+                        center_y = np.mean(yy_array[mask_saturated])                   
+                        x_center_1d_array_centered = (np.arange(0,img.shape[1])-center_x)*0.5
+                        y_center_1d_array_centered = np.arange(0,img.shape[0])-center_y
+                        xx_array_centered,yy_array_centered=np.meshgrid(x_center_1d_array_centered,y_center_1d_array_centered)
+                        dist_cent = np.abs(xx_array_centered+1j*yy_array_centered)
+                        max_saturated_radius = np.max(dist_cent[mask_saturated])
+                        nb_px_saturated_mask = np.sum(mask_saturated*1)
+                        print('The CG of saturated pixels is ({0:4.1f},{1:4.1f}) with an extension of {2:4.0f}px and contains {3:d}pixels'.format(center_x,center_y,max_saturated_radius,nb_px_saturated_mask))
+                        dico_center_x[frameType][frame] = center_x
+                        dico_center_y[frameType][frame] = center_y            
+                        print('We use this CG as center for frames of type {0:s}'.format(frameType))                        
             else:
-#            try:
                 # we assume here that the method points to a folder containing the list of the centers to be used in the same format
                 center_filename = os.path.join(method,'{0:s}_cam{1:d}_center.txt'.format(self._name,cam)) # like folder/cycle00_HWP0000_cam1_center.txt
-                # old way of doing it
-#                cycle_string = center_filename[center_filename.index('cycle'):center_filename.index('_HWP')]
-#                if cycle_string != 'cycle00':
-#                    center_filename = center_filename.replace(cycle_string,'cycle00')
-#                print('Reading the center file {0:s}'.format(center_filename))
-#                ascii_file = ascii.read(center_filename)
-#                        #names=['0_even_X','0_odd_X','pi_even_X','pi_odd_X','0_even_Y','0_odd_Y','pi_even_Y','pi_odd_Y'])
-#                for frameType in self._frameTypes:
-#                    mean_x_center = np.median(ascii_file[frameType+'_X'])
-#                    mean_y_center = np.median(ascii_file[frameType+'_Y'])
-#                    print('Frames of type {0:s} will be centered at {1:.2f} in x and {2:.2f} in y'.format(frameType,\
-#                          mean_x_center,mean_y_center))
-#                    dico_center_x[frameType] = np.ones(nb_frames)*mean_x_center
-#                    dico_center_y[frameType] = np.ones(nb_frames)*mean_y_center
-                # new way of doing it
                 center_files = glob.glob(os.path.join(method,'cycle*_HWP*_cam{0:d}_center.txt'.format(cam)))
                 for frameType in self._frameTypes:
                     center_list_x = []
@@ -254,10 +265,86 @@ class ZimpolScienceCube(ZimpolMasterFile):
                     dico_center_y[frameType] = np.ones(nb_frames)*mean_y_center
                     print('Frames of type {0:s} will be centered at {1:.2f} in x and {2:.2f} in y'.format(frameType,\
                           mean_x_center,mean_y_center))
-                    
+
+            if method != 'default' and method != 'gaussianFit' and method != 'saturated':
+                # self._centerx and self._centery are already well defined. nb_frames is in memory
+                dico = self._frames[cam]
+                for izeroPi,zeroPi in enumerate(['0','pi']):
+                    dico = self._frames[cam]
+                    even_name = '{0:s}_even'.format(zeroPi)
+                    odd_name = '{0:s}_odd'.format(zeroPi)
+                    shift_array_1d = np.arange(0.1,1,0.1)-0.5
+                    xshift_2d = np.ndarray((len(shift_array_1d),len(shift_array_1d)),dtype=float)
+                    yshift_2d = np.ndarray((len(shift_array_1d),len(shift_array_1d)),dtype=float)
+                    beamshift_optimization_matrix_median = np.ndarray((nb_frames,len(shift_array_1d),len(shift_array_1d)))
+                    beamshift_optimization_matrix_std = np.ndarray((nb_frames,len(shift_array_1d),len(shift_array_1d)))
+                    for frame in range(nb_frames):
+                        img_even = dico[even_name][frame,:,:]
+                        img_odd = dico[odd_name][frame,:,:]
+                        x_center_1d_array = np.arange(0,img_even.shape[1])
+                        y_center_1d_array= np.arange(0,img_even.shape[0])
+                        xx_array,yy_array=np.meshgrid(x_center_1d_array,y_center_1d_array)
+                        mask_saturated = np.logical_or(img_even>55000,img_odd>55000)
+                        for y in range(img_even.shape[0]):
+                            if np.any(mask_saturated[y,:]):
+                                minx = np.min(x_center_1d_array[mask_saturated[y,:]])
+                                maxx = np.max(x_center_1d_array[mask_saturated[y,:]])                                
+                                mask_saturated[y,minx:maxx+1] = True
+#                        fits.writeto(os.path.join(self._pathReduc,self._name+'_beamshift_saturation_mask_{0:s}_frame{1:02d}_cam{2:d}.fits'.format(zeroPi,frame,cam)),mask_saturated*1.,overwrite=True)
+                        center_x = np.mean(xx_array[mask_saturated])
+                        center_y = np.mean(yy_array[mask_saturated])                   
+                        x_center_1d_array_centered = (np.arange(0,img_even.shape[1])-center_x)*0.5
+                        y_center_1d_array_centered = np.arange(0,img_even.shape[0])-center_y
+                        xx_array_centered,yy_array_centered=np.meshgrid(x_center_1d_array_centered,y_center_1d_array_centered)
+                        dist_cent = np.abs(xx_array_centered+1j*yy_array_centered)
+                        max_saturated_radius = np.max(dist_cent[mask_saturated])
+                        nb_px_saturated_mask = np.sum(mask_saturated*1)
+                        print('The CG of saturated pixels is ({0:4.1f},{1:4.1f}) with an extension of {2:4.0f}px and contains {3:d}pixels'.format(center_x,center_y,max_saturated_radius,nb_px_saturated_mask))
+                        if max_saturated_radius>40:
+                            print('Warning: saturation was detected beyond 40px, something is probably weird.')
+                            print('We set the saturation radius to 10')
+                            max_saturated_radius = 10
+                        mask_for_fit = np.logical_and(dist_cent<max_saturated_radius*4,~mask_saturated)
+                        diff = img_even-img_odd
+                        diff[~mask_for_fit] = np.nan
+                        med_ref = np.nanmedian(diff)
+                        std_ref = np.nanstd(diff)
+                        min_x_for_crop = np.min(xx_array[np.isfinite(diff)])
+                        max_x_for_crop = np.max(xx_array[np.isfinite(diff)])
+                        min_y_for_crop = np.min(yy_array[np.isfinite(diff)])
+                        max_y_for_crop = np.max(yy_array[np.isfinite(diff)])
+                        img_even_cropped = img_even[min_y_for_crop:max_y_for_crop+1,min_x_for_crop:max_x_for_crop+1]
+                        img_odd_cropped = img_odd[min_y_for_crop:max_y_for_crop+1,min_x_for_crop:max_x_for_crop+1]
+                        mask_for_fit_cropped = mask_for_fit[min_y_for_crop:max_y_for_crop+1,min_x_for_crop:max_x_for_crop+1]
+
+                        median_shift = np.ndarray((len(shift_array_1d),len(shift_array_1d)),dtype=float)*np.nan
+                        std_shift = np.ndarray((len(shift_array_1d),len(shift_array_1d)),dtype=float)*np.nan
+                        rel_change_std_shift = np.ndarray((len(shift_array_1d),len(shift_array_1d)),dtype=float)*np.nan
+                        rel_change_median_shift = np.ndarray((len(shift_array_1d),len(shift_array_1d)),dtype=float)*np.nan
+                        for ixshift,xshift in enumerate(shift_array_1d):
+                            for iyshift,yshift in enumerate(shift_array_1d):
+                                xshift_2d[iyshift,ixshift] = xshift 
+                                yshift_2d[iyshift,ixshift] = yshift 
+                                img_shifted = imtools.shift_image_nofft(img_even_cropped,-xshift,-yshift,verbose=True)
+                                diff = img_shifted-img_odd_cropped
+                                diff[~mask_for_fit_cropped] = np.nan
+                                median_shift[iyshift,ixshift] = np.nanmedian(diff)
+                                std_shift[iyshift,ixshift] = np.nanstd(diff)
+                                rel_change_std_shift[iyshift,ixshift] = (std_shift[iyshift,ixshift]-std_ref)/std_ref
+                                rel_change_median_shift[iyshift,ixshift] = (median_shift[iyshift,ixshift]-med_ref)/med_ref
+                        beamshift_optimization_matrix_median[frame,:,:] = median_shift
+                        beamshift_optimization_matrix_std[frame,:,:] = std_shift
+                        argmin = np.argmin(std_shift)
+                        iyshift,ixshift=np.unravel_index(argmin,std_shift.shape)
+                        xshift_best = xshift_2d[iyshift,ixshift]
+                        yshift_best = yshift_2d[iyshift,ixshift]
+                        print('Best beamshift: (X,Y)=({0:4.1f},{1:4.1f}) with a rel change in std of {2:4.1f}% and in median flux of {3:4.1f}%'.format(\
+                              xshift_best,yshift_best,rel_change_std_shift[iyshift,ixshift]*100,rel_change_median_shift[iyshift,ixshift]*100))                        
+                        dico_center_x[self._frameTypes[izeroPi*2]][frame] = dico_center_x[self._frameTypes[izeroPi*2+1]][frame]+xshift_best  # self._frameTypes[izeroPi*2] is 0 for 0 and 2 for pi
+                        dico_center_y[self._frameTypes[izeroPi*2]][frame] = dico_center_y[self._frameTypes[izeroPi*2+1]][frame]+yshift_best  
+                    fits.writeto(os.path.join(self._pathReduc,self._name+'_beamshift_matrix_median_{0:s}_cam{1:d}.fits'.format(zeroPi,cam)),beamshift_optimization_matrix_median,overwrite=True)
+                    fits.writeto(os.path.join(self._pathReduc,self._name+'_beamshift_matrix_std_{0:s}_cam{1:d}.fits'.format(zeroPi,cam)),beamshift_optimization_matrix_std,overwrite=True)
                 
-#            except Exception:
-#                print('Recentering method not understood')
             med_0_even_x  = np.median(dico_center_x[self._frameTypes[0]])
             med_0_even_y  = np.median(dico_center_y[self._frameTypes[0]])
             med_0_odd_x   = np.median(dico_center_x[self._frameTypes[1]])
@@ -293,7 +380,7 @@ class ZimpolScienceCube(ZimpolMasterFile):
             print('in 0 odd  : sig_X={0:3.2f} sig_Y={1:3.2f}'.format(std_0_odd_x,std_0_odd_y))
             print('in pi even: sig_X={0:3.2f} sig_Y={1:3.2f}'.format(std_pi_even_x,std_pi_even_y))
             print('in pi odd : sig_X={0:3.2f} sig_Y={1:3.2f}'.format(std_pi_odd_x,std_pi_odd_y))
-            print('Difference between 0 and odd frames (beamshift effect)')
+            print('Difference between even and odd frames (beamshift effect)')
             print('in 0  frames (median): delta_X={0:3.2f} delta_Y={1:3.2f}'.format(med_0_even_x-med_0_odd_x,med_0_even_y-med_0_odd_y))
             print('in pi frames (median): delta_X={0:3.2f} delta_Y={1:3.2f}'.format(med_pi_even_x-med_pi_odd_x,med_pi_even_y-med_pi_odd_y))
             print('in 0  frames (std): sig_delta_X={0:3.2f} sig_delta_Y={1:3.2f}'.format(std_0_even_minus_odd_x,std_0_even_minus_odd_y))
@@ -465,9 +552,9 @@ class ZimpolScienceCube(ZimpolMasterFile):
                 cube_even = self._frames[cam]['0_even']+self._frames[cam]['pi_even']
                 cube_odd = self._frames[cam]['0_odd']+self._frames[cam]['pi_odd']
                 cubeHDU_even = fits.PrimaryHDU(cube_even,header=self._header)
-                cubeHDU_even.writeto(os.path.join(self._pathReduc,self._name+'_cube_even_cam{0:d}.fits'.format(cam)),clobber=True,output_verify='ignore')
+                cubeHDU_even.writeto(os.path.join(self._pathReduc,self._name+'_cube_even_cam{0:d}.fits'.format(cam)),overwrite=True,output_verify='ignore')
                 cubeHDU_odd = fits.PrimaryHDU(cube_odd,header=self._header)
-                cubeHDU_odd.writeto(os.path.join(self._pathReduc,self._name+'_cube_odd_cam{0:d}.fits'.format(cam)),clobber=True,output_verify='ignore')
+                cubeHDU_odd.writeto(os.path.join(self._pathReduc,self._name+'_cube_odd_cam{0:d}.fits'.format(cam)),overwrite=True,output_verify='ignore')
         else:
             for cam in self.getCameras():
                 for k in self._frameTypes:

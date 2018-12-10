@@ -71,7 +71,7 @@ class ZimpolDataHandler(DataHandler):
 #    _frameTypes = ['even','odd']                      
     _indicesRealColumnsleft  = range(_prescanColumns,_originalColumnNb//2-_overscanColumns) 
     _indicesRealColumnsright = range(_originalColumnNb//2+_overscanColumns,_originalColumnNb-_prescanColumns)
-    _indicesRealColumns = _indicesRealColumnsleft + _indicesRealColumnsright 
+    _indicesRealColumns = list(_indicesRealColumnsleft) + list(_indicesRealColumnsright)
 #  _indicesDarkLeft = range(1,_prescanColumns) + range(_originalColumnNb/2 - \
 #            _overscanColumns,_originalColumnNb/2) # warning the prescans are not clean, we therefore only use the overscan
     _indicesDarkLeft = range(_originalColumnNb//2 - _overscanColumns,_originalColumnNb//2) 
@@ -96,7 +96,6 @@ class ZimpolDataHandler(DataHandler):
                         or a list of complete filenames
             - name: optional name for the file (zimpol_file by default)
         """
-
         DataHandler.__init__(self,pathRaw,pathReduc,self._keywordList,fileNames,name)
 
     def _extractFramesFromFile(self,index,subtractDark=False):
@@ -104,7 +103,8 @@ class ZimpolDataHandler(DataHandler):
         Function that opens an individual raw frame, extracts the 0 and pi frame for each
         even and odd rows, and for each of the two cameras.
         Input:
-            - index: the index of the frame to extract
+            - index: the index of the fits files to extract
+            - subtractDark: boolean: to subtract the dark or not.
         Output:
             - dico: a dictionnary containing 2 entries for each camera (1 and 2),
                     plus a third entry 'header' containing the header of the fits 
@@ -113,28 +113,32 @@ class ZimpolDataHandler(DataHandler):
                      'zero_odd','zero_even', 'pi_odd' and 'pi_even' in the 
                      form of a cube of dimension [nz,512,512]. 
         """
-        if isinstance(index,list):
+        if isinstance(index,(list,range)):
             if len(index) > 1:
                 return self.extractFramesFromFiles(self,index)
         if index>=self.getNumberFiles():
-            raise Exception('Trying to extract frames from file {0:3d}: index out of bound exception')
+            raise Exception('Trying to extract frames from file {0:3d}:'.format(index),\
+                            'index out of bound exception')
         fileName=self._fileNames[index]
         print('Extracting frame {0:3d} : {1:s}'.format(index,fileName))
         hduList = fits.open(os.path.join(self._pathRaw, fileName))
 
 #            dither = {1:[0,0],2:[0,0]}
         shiftx_cam_1 = int(self._keywords['HIERARCH ESO INS3 POS3 POS'][index])
-        shifty_cam_1 = int(self._keywords['HIERARCH ESO INS3 POS4 POS'][index]+self._keywords['HIERARCH ESO INS3 POS2 POS'][index])
+        shifty_cam_1 = int(self._keywords['HIERARCH ESO INS3 POS4 POS'][index]+\
+                           self._keywords['HIERARCH ESO INS3 POS2 POS'][index])
         shiftx_cam_2 = int(self._keywords['HIERARCH ESO INS3 POS6 POS'][index])
         shifty_cam_2 = int(self._keywords['HIERARCH ESO INS3 POS7 POS'][index])
-        print('Dithering  correction [X,Y] by [{0:d},{1:d}] native pixels for cam1 and [{2:d},{3:d}] for cam2'.format(\
-              shiftx_cam_1,shifty_cam_1,shiftx_cam_2,shifty_cam_2))
-        self.dither = {1:[shiftx_cam_1,shifty_cam_1//2],2:[shiftx_cam_2,shifty_cam_2//2]}        
+        print('Dithering  correction [X,Y] by [{0:d},{1:d}]'.format(shiftx_cam_1,\
+              shifty_cam_1),' native pixels for cam1 and ',
+              '[{0:d},{1:d}] for cam2'.format(shiftx_cam_2,shifty_cam_2))
+        self.dither = {1:[shiftx_cam_1,shifty_cam_1//2],2:[shiftx_cam_2,\
+                       shifty_cam_2//2]}        
         header=hduList[0].header
         dico={}
         for camera in self._cameras:
-            dico[camera]=self._extractFramesFromCube(hduList[camera].data,subtractDark=subtractDark,dither=self.dither[camera])
-#            print(dither)
+            dico[camera]=self._extractFramesFromCube(hduList[camera].data,\
+                subtractDark=subtractDark,dither=self.dither[camera])
         hduList.close()
         dico['header']=header
         return dico
@@ -154,8 +158,9 @@ class ZimpolDataHandler(DataHandler):
                      form of a cube of dimension [nz,512,512]. 
         """
         if indices==None:
-            return self.extractFramesFromFiles(range(self.getNumberFiles()),subtractDark=subtractDark)
-        if not isinstance(indices,list):
+            return self.extractFramesFromFiles(range(self.getNumberFiles()),\
+                                               subtractDark=subtractDark)
+        if not isinstance(indices,(list,range)):
             return self._extractFramesFromFile(indices)
         else:
             if len(indices) == 1:
@@ -190,6 +195,16 @@ class ZimpolDataHandler(DataHandler):
             - dither: 2-element array for shift in case dither was used
         """
         nbFrames=cube.shape[0]
+#        if badframes is not None:
+#            if isinstance(badframes,(list,range)):
+#                list_frames = np.arange(nbFrames)
+#                goodframes = [idf for idf in list_frames if idf not in badframes]
+#                cube = cube[goodframes,:,:]
+#                nbFrames=cube.shape[0]
+#                print('Bad frames specified (0-based):',badframes)
+#            else:
+#                raise Exception('badframes should be specified with a list.',
+#                                'Got ',badframes)
         startPhase0 = 0
         startPhasePi = 1
         if nbFrames % 2 != 0:
@@ -235,7 +250,7 @@ class ZimpolDataHandler(DataHandler):
             phasePiEven = np.roll(phasePiEven,dither[0],axis=2) # x axis (INS3 POS3 POS for cam1 and INS3 POS6 POS for cam2)
             phasePiOdd = np.roll(phasePiOdd,dither[1],axis=1) # y axis (INS3 POS4 POS/2 for cam1 and INS3 POS7 POS/2 for cam2)
             phasePiOdd = np.roll(phasePiOdd,dither[0],axis=2) # x axis (INS3 POS3 POS for cam1 and INS3 POS6 POS for cam2)
-#            fits.writeto('Users/jmilli/desktop/tmp_after_shift.fits',np.median(phase0Even,axis=3),clobber=True)
+#            fits.writeto('Users/jmilli/desktop/tmp_after_shift.fits',np.median(phase0Even,axis=3),overwrite=True)
 
 
         ## For the odd frame, we shift one column up the image because of row 10 is to
@@ -308,13 +323,22 @@ class ZimpolDataHandler(DataHandler):
 
         
 if __name__=='__main__':
-    pathRoot='/Volumes/DATA/JulienM/HD106906_ZIMPOL'
-    pathRaw=os.path.join(pathRoot,'raw_calib')
-    pathReduc=os.path.join(pathRoot,'calib')
-    fileNames='SPHER.2015-07-21T14:42'
-    bias = ZimpolDataHandler(pathRoot,pathRaw,pathReduc,fileNames)
-    #dico = biasIO._extractFramesFromFile(0)
-    dico = bias._extractFramesFromFile(0)
-    import pyds9
-    ds9=pyds9.DS9()
-    ds9.set_np2arr(dico[1]['pi_odd'][0,:,:])
+    pathRoot='/Volumes/MILOU_1TB_2/HR4796_zimpol_GTO'
+    pathRaw=os.path.join(pathRoot,'raw_science/FastPolarimetry_000')
+    pathReduc=os.path.join(pathRoot,'test')
+    fileNames='SPHER.2016-05-25T01:14:12.495.fits'
+    zimpolDataHandler = ZimpolDataHandler(pathRaw,pathReduc,fileNames,name='test')
+    zimpolDataHandler.getTotalNumberFrames()
+    dico = zimpolDataHandler._extractFramesFromFile(0,\
+                    subtractDark=False)
+    
+#    pathRoot='/Volumes/DATA/JulienM/HD106906_ZIMPOL'
+#    pathRaw=os.path.join(pathRoot,'raw_calib')
+#    pathReduc=os.path.join(pathRoot,'calib')
+#    fileNames='SPHER.2015-07-21T14:42'
+#    bias = ZimpolDataHandler(pathRoot,pathRaw,pathReduc,fileNames)
+#    #dico = biasIO._extractFramesFromFile(0)
+#    dico = bias._extractFramesFromFile(0)
+#    import pyds9
+#    ds9=pyds9.DS9()
+#    ds9.set_np2arr(dico[1]['pi_odd'][0,:,:])
