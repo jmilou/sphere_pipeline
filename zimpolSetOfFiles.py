@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Feb  7 09:51:17 2017
+Modif tested by JM on 2020-11-06 to match the direction of standard stars 
 
 @author: jmilli
 """
@@ -44,6 +45,7 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
         - _name
     Specific attributes to ZimpolSetOfFiles
         - _scienceFilesIndices
+        - _calibFilesIndices
         - recenter
         - beamShift
         - _biasOnlyI
@@ -83,6 +85,7 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
                         or a list of complete filenames
             - beamshift: says whether a beamshift correction is applied or not to
                         remove the shift between the even and odd frames.
+                        By default, it is False.
             - badPixelMap: a map of bad pixel (bad=1, good=0) (optional) 
             - rowMedianSubtraction: if True, removes the median in each row on a n
                                     individual frame level to remove an electronic signature
@@ -91,25 +94,31 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
                                     individual frame level to remove an electronic signature
                                     that can create a noise pattern (vertical lines)
             - ftt: whether frame shifting is done with FFT or not
-            - biasOnly
-            - badPixel
-            - center: 
+            - biasOnly: if True, then the bias frame is only applied for the I image 
+                        but not for the polarimetric difference image (Q or U).
+                        By default, this is False, therefore the bias if present
+                        is systematically applied.
+            - badPixel: True (default) if you want to correct for bad pixels
+            - center: [[x_cam1,y_cam1],[x_cam2,y_cam2]] array with the approximate
+                      coordinates of the star center. 
+                      This is optional and the algorithm will use the geometric 
+                      center if nothing is provided.
         """
         ZimpolDataHandler.__init__(self,pathRaw,pathReduc,fileNames,name)
-        self._scienceFilesIndices = self._get_id_from_dpr_catg('SCIENCE')
-        self._calibFilesIndices = self._get_id_from_dpr_catg('CALIB')
+        self._scienceFilesIndices = self._get_id_from_dpr_catg('all')
+        # self._calibFilesIndices = self._get_id_from_dpr_catg('CALIB')
         self._setup_keywords = ['HIERARCH ESO DET NDIT', \
                     'HIERARCH ESO DET READ CURNAME','HIERARCH ESO DET DIT1', \
                     'HIERARCH ESO DPR TECH', 'HIERARCH ESO DPR CATG',\
                     'HIERARCH ESO INS3 OPTI2 NAME',\
                     'HIERARCH ESO INS3 OPTI5 NAME','HIERARCH ESO INS3 OPTI6 NAME',\
                     'HIERARCH ESO INS4 DROT2 POSANG','HIERARCH ESO INS4 DROT2 MODE']
-        print('They are {0:d} science files'.format(len(self._scienceFilesIndices)))
-        print('They are {0:d} calib files'.format(len(self._calibFilesIndices)))
+        # print('They are {0:d} science files'.format(len(self._scienceFilesIndices)))
+        # print('They are {0:d} calib files'.format(len(self._calibFilesIndices)))
         print('Setup')
         for keyword in self._setup_keywords :
             setup = set(self.getKeywords()[keyword][i] for i in self._scienceFilesIndices)
-            if len(setup) != 1:
+            if len(setup) > 1:
                 print('Warning the keyword {0:s} is not identical for all science files'.format(keyword))
 #                raise TypeError('The keyword {0:s} must be identical for all science files'.format(keyword))
             print('{0:s}: {1:s}'.format(keyword,str(setup.pop())))
@@ -132,9 +141,9 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
             self._guess_center_xy=np.asarray([[self._columnNb//2,self._rowNb//2],[self._columnNb//2,self._rowNb//2]])
         else:
             if np.asarray(center).ndim == 1:
-                self._guess_center_xy = np.asarray([center,center])
+                self._guess_center_xy = np.asarray([center,center],dtype=int)
             elif np.asarray(center).ndim == 2:
-                self._guess_center_xy =np.asarray(center)
+                self._guess_center_xy =np.asarray(center,dtype=int)
             else:
                 raise TypeError('The center guess has the wrong shape. It should be an [x,y] array or a [[x_cam1,y_cam1],[x_cam2,y_cam2]] array')
 
@@ -303,10 +312,14 @@ class ZimpolSetOfFiles(ZimpolDataHandler):
                 raise Exception('Combination method not available: {0:s}'.format(method))            
             self._I.append(np.flipud(f(cube_I[0],axis=0))) # cam 1
             self._I.append(np.flipud(np.fliplr(f(cube_I[1],axis=0)))) # for cam 2
-            self._Q.append(-np.flipud(f(cube_Q[0],axis=0)))# cam 1
-            self._Q.append(np.flipud(np.fliplr(f(cube_Q[1],axis=0))))# for cam 2
-            self._U.append(-np.flipud(f(cube_U[0],axis=0))) # cam 1
-            self._U.append(np.flipud(np.fliplr(f(cube_U[1],axis=0))))# for cam 2
+            self._Q.append(np.flipud(f(cube_Q[0],axis=0)))# cam 1
+            self._Q.append(-np.flipud(np.fliplr(f(cube_Q[1],axis=0))))# for cam 2
+            self._U.append(np.flipud(f(cube_U[0],axis=0))) # cam 1
+            self._U.append(-np.flipud(np.fliplr(f(cube_U[1],axis=0))))# for cam 2
+            # self._Q.append(-np.flipud(f(cube_Q[0],axis=0)))# cam 1
+            # self._Q.append(np.flipud(np.fliplr(f(cube_Q[1],axis=0))))# for cam 2
+            # self._U.append(-np.flipud(f(cube_U[0],axis=0))) # cam 1
+            # self._U.append(np.flipud(np.fliplr(f(cube_U[1],axis=0))))# for cam 2
             for icam,cam in enumerate(self.getCameras()):
                 fits.writeto(os.path.join(self._pathReduc,'I_cam{0:d}.fits'.format(cam)),self._I[icam],listPolarCycles[0]._plusQ._header,overwrite=True,output_verify='ignore')
                 fits.writeto(os.path.join(self._pathReduc,'Q_cam{0:d}.fits'.format(cam)),self._Q[icam],listPolarCycles[0]._plusQ._header,overwrite=True,output_verify='ignore')

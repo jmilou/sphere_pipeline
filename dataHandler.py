@@ -70,7 +70,7 @@ class DataHandler(object):
         """
         filename = self._name+'_keyword_list.csv'
         ascii.write([self._keywords[key] for key in self._keywords.keys()],
-                         os.path.join(self._pathReduc,filename),names=self._keywords.keys(),format='csv')
+                         os.path.join(self._pathReduc,filename),names=list(self._keywords.keys()),format='csv')
         print('Wrote the file {0:s}'.format(os.path.join(self._pathReduc,filename)))
             
     def loadFiles(self,dir,inputFiles,verbose=False):

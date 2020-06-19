@@ -564,13 +564,12 @@ def spider_aperture_photometry(cube,rin,rout,width=4,full_output=False):
         return np.mean(aper_phot,axis=1) - np.mean(aper_phot_sky,axis=1)
     
 if __name__ == "__main__":
-    tr = sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=1.)
+#    tr = sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=1.)
+    tr = sphere_transmission(BB_filter='B_Ks', DB_filter=None, NDset=2.)
     print(tr)
-    theoretical_sphere_fwhm(filter_name='YJ')
-
-
-    tr = zimpol_transmission(NDset=1.,filt='VBB')
-    print(tr)
+#    theoretical_sphere_fwhm(filter_name='YJ')
+#    tr = zimpol_transmission(NDset=1.,filt='VBB')
+#    print(tr)
 
 #    ap = spider_aperture_photometry(cube_rebin,60,80,width=8,full_output=True)
 #    plt.plot(ap,color='blue')

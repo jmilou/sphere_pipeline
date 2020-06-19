@@ -2,6 +2,9 @@
 """
 Created on Wed May 25 11:49:10 2016
 
+Change log:
+    2020-02-25: changed time.location.latitude in time.location.lat (line 43)
+
 @author: jmilli
 """
 import numpy as np
@@ -37,7 +40,7 @@ def parangle_from_time(time,coords):
     sideral_time = time.sidereal_time('mean')#time.sidereal_time('apparent')
     hour_angle = sideral_time - coords.ra
     y = np.sin(hour_angle)
-    x = np.tan(time.location.latitude) * np.cos(coords.dec ) - np.sin(coords.dec) * np.cos(hour_angle)
+    x = np.tan(time.location.lat) * np.cos(coords.dec ) - np.sin(coords.dec) * np.cos(hour_angle)
     parangle = np.rad2deg(np.arctan2( y, x ))
     return np.mod(parangle,360*u.degree)
 

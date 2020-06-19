@@ -172,7 +172,7 @@ class ZimpolScienceCube(ZimpolMasterFile):
         """
         Recenter the frames (before collapsing them)
         Input:
-            - method: 'default', 'gaussianFit' or the name of a folder 
+            - method: 'default', 'gaussianFit','saturated', or the name of a folder 
                 containing the beamshift_correction_cam[1-2].csv
          """
         self._centerx = []
