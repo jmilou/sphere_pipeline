@@ -1,7 +1,12 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Tue Dec  1 12:27:05 2015
 Modified on Sun Jun 2 to add the function ifs_transmission
+
+2021-09-19: ycen,xcen = fit_2dgaussian(subimage, crop=False, cent=None, ...) now
+            returns  floats (instead of 2 1-element array before), probably due to
+            changes in python 3.8
+
 @author: jmilli
 """
 from astropy.io import ascii,fits
@@ -139,7 +144,7 @@ def zimpol_transmission(NDset=1.,filt='VBB'):
     data_nd = ascii.read(os.path.join(path,'transmission_ND_filters.txt'))
     w_nd = data_nd['col1']
     if float(NDset) == 0.:
-        t_nd = data_nd['col1']*0.
+        t_nd = data_nd['col1']*0.+1
     elif float(NDset) == 1.:
         t_nd = data_nd['col2']
     elif float(NDset) == 2.:
@@ -288,6 +293,96 @@ def theoretical_sphere_fwhm(filter_name='B_H',mirror=8.,verbose=True):
         print('Theoretical FWHM: {0:4.2f} (left), {1:4.2f} (right)'.format(theoretical_fwhm[0],theoretical_fwhm[1]))
     return theoretical_fwhm
 
+def extinction_coefficient(wl):
+    """
+    Parameters
+    ----------
+    wl : float
+        central wavelength in nm.
+
+    Returns
+    -------
+    Exctinction coefficient.
+    """
+    table = np.loadtxt(os.path.join(path,'paranal_extinction_coefficiencts.txt'))
+    wl_array = table[:,0]
+    extinction_array = table[:,1]
+    interp_function = interp1d(wl_array,extinction_array)
+    return interp_function(wl)
+
+def zimpol_extinction_coefficient(NDset=1.,filt='VBB'):
+    """
+    
+
+    Parameters
+    ----------
+    NDset : float, optional
+        Either 0., 1., 3. or 4. for OPEN, ND_1.0, ND_2.0 or ND_4.0
+    filt : string, optional
+        The filter. The default is 'VBB'.
+
+    Returns
+    -------
+    float
+        Extinction for the central wavelength of the filter combination.
+
+    """
+    # ND filter
+    data_nd = ascii.read(os.path.join(path,'transmission_ND_filters.txt'))
+    w_nd = data_nd['col1']
+    if float(NDset) == 0.:
+        t_nd = data_nd['col1']*0.+1
+    elif float(NDset) == 1.:
+        t_nd = data_nd['col2']
+    elif float(NDset) == 2.:
+        t_nd = data_nd['col3']
+    elif float(NDset) == 4.:
+        t_nd = data_nd['col4']
+    else:
+        print('I did not understand your choice of ND filter: {0:3.2f}'.format(NDset))
+        return
+
+    # Filter
+    data_filt = ascii.read(os.path.join(path,'transmission_{0:s}.txt'.format(filt)))
+    w_filt = data_filt['col1']
+    t_filt = data_filt['col2']
+
+    lambdainterp  = np.arange(400,1001,1)
+    
+    interp_function_nd = interp1d(w_nd,t_nd)
+    t_nd_interp = interp_function_nd(lambdainterp)
+    t_nd_interp[t_nd_interp<0.]=0.
+    
+    interp_function_filt = interp1d(w_filt,t_filt)
+    t_filt_interp = interp_function_filt(lambdainterp)
+    t_filt_interp[t_filt_interp<0.]=0.
+    
+    central_wl_nm =  np.sum(t_nd_interp * t_filt_interp*lambdainterp) / np.sum(t_nd_interp * t_filt_interp)
+    return extinction_coefficient(central_wl_nm)
+
+def zimpol_extinction_factor(airmass, NDset=1.,filt='VBB'):
+    """
+    Computes the extinction (float smaller than 1) for an observation at a given airmass
+    in a given Zimpol filter.
+    
+    Parameters
+    ----------
+    airmass : float
+        airmass between 1 and infinity.
+    NDset : float, optional
+        Either 0., 1., 3. or 4. for OPEN, ND_1.0, ND_2.0 or ND_4.0
+    filt : string, optional
+        The filter. The default is 'VBB'.
+
+    Returns
+    -------
+    float
+        vale smaller than 1 (or equal to 1 if airmass=1).
+
+    """
+    k = zimpol_extinction_coefficient(NDset=NDset,filt=filt)
+    return np.exp(-k*(airmass-1))
+    
 def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waffle_pattern='x',\
                         path='.',rspot=12,name='waffle',save=True,sigfactor=6):
     """
@@ -333,8 +428,8 @@ def sph_irdis_centerspot(waffle_cube, filter_name='B_H', centerguessxy=None,waff
             ax.imshow(subimage, cmap='CMRmap', origin='lower',interpolation='nearest')
             ycen,xcen = fit_2dgaussian(subimage, crop=False, cent=None, cropsize=15, fwhmx=fwhm, \
                 fwhmy=fwhm, sigfactor=sigfactor,threshold=True,verbose=True,plot=True)
-            spot_pos_fitted[i,j,0] = spot_pos[j,0] - rspot + xcen[0] 
-            spot_pos_fitted[i,j,1] = spot_pos[j,1] - rspot + ycen[0]
+            spot_pos_fitted[i,j,0] = spot_pos[j,0] - rspot + xcen 
+            spot_pos_fitted[i,j,1] = spot_pos[j,1] - rspot + ycen
 #            print('Center frame {0:02d} {1:s}: ({2:6.2f} {3:6.2f})'.format(i,subimage_name,\
 #                spot_pos_fitted[i,j,0],spot_pos_fitted[i,j,1]))
 #            if save:
@@ -567,6 +662,12 @@ if __name__ == "__main__":
 #    tr = sphere_transmission(BB_filter='B_H', DB_filter=None, NDset=1.)
     tr = sphere_transmission(BB_filter='B_Ks', DB_filter=None, NDset=2.)
     print(tr)
+    print(extinction_coefficient(400))
+    print(zimpol_extinction_coefficient(NDset=0.,filt='N_I'))
+
+    airmass=np.linspace(1,25,20)
+    zpl_ext = zimpol_extinction_factor(airmass,NDset=0.0,filt='I_PRIM')
+    plt.plot(airmass,zpl_ext)
 #    theoretical_sphere_fwhm(filter_name='YJ')
 #    tr = zimpol_transmission(NDset=1.,filt='VBB')
 #    print(tr)

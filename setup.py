@@ -11,7 +11,7 @@ setup(
     keywords='image processing data analysis',
     packages=find_packages(),
     install_requires=[
-        'numpy', 'scipy', 'astropy', 'pandas', 'matplotlib','pandas','datetime'
+        'numpy', 'scipy', 'astropy', 'pandas', 'matplotlib','pandas','datetime','astroquery','pyprind'
     ],
     zip_safe=False
 )
